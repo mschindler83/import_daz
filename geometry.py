@@ -1345,8 +1345,7 @@ class Geometry(Asset, Channels):
                 pgs = dazRna(me).DazMaterialSets.add()
                 pgs.name = struct["name"]
                 for mname in struct["materials"]:
-                    pg = pgs.names.add()
-                    pg.name = mname
+                    addNamedProp(pgs.names, mname)
 
         obname = geonode.getObjectName(inst)
         ob = bpy.data.objects.new(obname, me)

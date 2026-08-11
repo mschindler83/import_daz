@@ -18,6 +18,18 @@ DAZ_PROPS = True
 #   Blender 5
 #-------------------------------------------------------------
 
+if bpy.app.version < (5,3,0):
+    def addNamedProp(pgs, name):
+        pg = pgs.add()
+        pg.name = name
+        return pg
+else:
+    def addNamedProp(pgs, name):
+        pg = pgs.add()
+        print("Add named prop %s to %s" % (name, pgs))
+        #pg.name = name
+        return pg
+
 def P2B(pb):
     return pb
 
