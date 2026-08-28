@@ -417,12 +417,11 @@ class GeoNode(Node, SimNode):
                 if dmat.shader == 'TOON':
                     LS.toons.append(ob)
 
-            def selectMaterialPolys(me, mnum):
+            def selectMaterialPolys(me, mnum, midx):
                 bpy.ops.mesh.select_mode(type='VERT')
                 bpy.ops.mesh.select_all(action='DESELECT')
                 setMode('OBJECT')
-                selection = [(f.material_index == mnum) for f in me.polygons]
-                me.polygons.foreach_set("select", selection)
+                me.polygons.foreach_set("select", midx == mnum)
                 setMode('EDIT')
 
             if (smooth and
@@ -430,6 +429,10 @@ class GeoNode(Node, SimNode):
                 not self.isSubdivided() and
                 not isGeograft(ob) and
                 activateObject(context, ob)):
+                # read the material indices once instead of scanning
+                # every polygon again for each material
+                midx = np.empty(len(ob.data.polygons), dtype=np.int32)
+                ob.data.polygons.foreach_get("material_index", midx)
                 if hasattr(ob.data, "use_auto_smooth"):
                     setMode('EDIT')
                     bpy.ops.mesh.reveal()
@@ -438,7 +441,7 @@ class GeoNode(Node, SimNode):
                     bpy.ops.mesh.mark_sharp(clear=True)
                     for mnum,dmat in dmats:
                         angle = dmat.getValue(["Smooth Angle"], 89.9)
-                        selectMaterialPolys(ob.data, mnum)
+                        selectMaterialPolys(ob.data, mnum, midx)
                         bpy.ops.mesh.hide(unselected=True)
                         bpy.ops.mesh.select_all(action='DESELECT')
                         bpy.ops.mesh.select_mode(type='EDGE')
@@ -454,7 +457,7 @@ class GeoNode(Node, SimNode):
                     setMode('EDIT')
                     for mnum,dmat in dmats:
                         angle = dmat.getValue(["Smooth Angle"], 89.9)
-                        selectMaterialPolys(ob.data, mnum)
+                        selectMaterialPolys(ob.data, mnum, midx)
                         bpy.ops.mesh.select_mode(type='EDGE')
                         bpy.ops.mesh.set_sharpness_by_angle(angle=angle*D)
                     setMode('OBJECT')

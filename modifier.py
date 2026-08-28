@@ -791,12 +791,23 @@ def buildVertexGroup(ob, vgname, weights, default=None, force=False):
                 return vgrp
         else:
             vgrp = ob.vertex_groups.new(name=vgname)
+        # vgrp.add() accepts a list of indices, so group the vertices
+        # that share a weight and add each group in a single call
+        # instead of one call per vertex
         if default is None:
+            last = {}
             for vn,w in weights:
-                vgrp.add([vn], w, 'REPLACE')
+                last[vn] = w    # a later entry overrides an earlier one,
+            byweight = {}       # exactly as repeated REPLACE calls did
+            for vn,w in last.items():
+                if w in byweight:
+                    byweight[w].append(vn)
+                else:
+                    byweight[w] = [vn]
+            for w,vns in byweight.items():
+                vgrp.add(vns, w, 'REPLACE')
         else:
-            for vn in weights:
-                vgrp.add([vn], default, 'REPLACE')
+            vgrp.add(list(weights), default, 'REPLACE')
         return vgrp
     return None
 
