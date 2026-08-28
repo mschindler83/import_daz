@@ -319,6 +319,12 @@ def selectSet(ob, value):
 
 
 def setMode(mode):
+    ob = bpy.context.object
+    if ob and ob.mode == mode:
+        # Asking for the mode we are already in is observably a no-op:
+        # it neither rebuilds the edit-bone table nor flushes pending
+        # edits, it only pays the cost of running an operator.
+        return
     try:
         bpy.ops.object.mode_set(mode=mode)
     except RuntimeError as err:
