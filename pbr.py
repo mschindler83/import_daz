@@ -122,11 +122,11 @@ class PbrTree(CyclesTree):
     def linkPBRNormal(self, pbr):
         if self.bump:
             self.links.new(self.bump.outputs["Normal"], pbr.inputs["Normal"])
-            if hasattr(pbr.inputs, PBR.CoatNormal):
-                self.links.new(self.bump.outputs["Normal"], pbr.inputs[PBR.CoatNormal])
+            if PBR.CoatNormal in pbr.inputs.keys():
+                self.links.new(self.bump.outputs["Normal"], pbr.inputs[PBR.CoatNormal])
         elif self.normal:
             self.links.new(self.normal.outputs["Normal"], pbr.inputs["Normal"])
-            if hasattr(pbr.inputs, PBR.CoatNormal):
+            if PBR.CoatNormal in pbr.inputs.keys():
                 self.links.new(self.normal.outputs["Normal"], pbr.inputs[PBR.CoatNormal])
 
 
