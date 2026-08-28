@@ -381,31 +381,42 @@ if DAZ_PROPS:
                     except TypeError:
                         setattr(pg, prop, [bool(elt) for elt in value])
 
-                def setProp(pg, prop, value):
-                    if not prop.startswith("Daz"):
-                        pass
+                def setProp(pg, prop, value, toplevel=False):
+                    # The Daz prefix identifies legacy properties on the
+                    # datablock, but the members of a nested property group are
+                    # not prefixed, so only filter on it at the top level.
+                    if toplevel and not prop.startswith("Daz"):
+                        return False
                     elif not hasattr(pg, prop):
-                        pass
+                        return False
                     elif isinstance(value, (str, bool, int, float)):
                         setSingleAttr(pg, prop, value)
+                    elif hasattr(value, "keys"):
+                        # a property group where a value was expected
+                        return False
                     elif len(value) == 0:
                         pass
                     elif isinstance(value[0], (str, bool, int, float)):
                         setVectorAttr(pg, prop, value)
                     else:
-                        pgs1 = value
                         pgs2 = getattr(pg, prop)
-                        for pg1 in pgs1:
+                        for pg1 in value:
                             pg2 = pgs2.add()
-                            pg2.name = pg1.name
-                            for key,value in pg1.items():
-                                setProp(pg2, key, value)
+                            # pg1.name is the IDProperty's own name, which is
+                            # empty for list elements. The stored "name" key is
+                            # copied by the loop below like any other member.
+                            for key,val in pg1.items():
+                                setProp(pg2, key, val)
+                    return True
 
-                #print("Update %s" % rna)
+                migrated = []
                 for prop,value in rna.items():
-                    setProp(rna.daz_importer, prop, value)
+                    if setProp(rna.daz_importer, prop, value, toplevel=True):
+                        migrated.append(prop)
                 setModernProps(rna)
-                for prop,value in list(rna.items()):
+                # Only remove the legacy properties that were migrated. Morph
+                # sliders and other add-ons' properties share this dictionary.
+                for prop in migrated:
                     del rna[prop]
 
 
