@@ -173,7 +173,7 @@ function doDirs(fp, key, ndirs, fcn)
 function doFigure(fp, figure)
 {
     figure.finalize();
-    startObject(fp, figure, normString(figure.name), "", ",");
+    startObject(fp, figure, figure.name, "", ",");
 
     var obj = figure.getObject();
     if (obj != null)
@@ -191,7 +191,7 @@ function doFigure(fp, figure)
     {
         bone = bones[i];
         bone.finalize();
-        startObject(fp, bone, normString(bone.name), "        ", ",")
+        startObject(fp, bone, bone.name, "        ", ",")
         fp.writeLine("                \"origin\": " + bone.getOrigin());             
         if (i == n-1) c = "";
         fp.writeLine("            }" + c );
@@ -236,7 +236,7 @@ function doMesh(fp, obj, start, node, str1, str2)
         return false;
     var clname = node.className();
     if (start)
-        startObject(fp, node, normString(node.name), "", ",");
+        startObject(fp, node, node.name, "", ",");
     fp.writeLine("        \"class\": \"" + clname + "\",");
     var useBase = true;
     var label = node.getLabel();
