@@ -11,10 +11,7 @@ from ..debug import DEBUG
 if DEBUG and "MHXFeature" in locals():
     print("Reloading MHX Tools")
     import bpy
-    if bpy.app.version < (5,0,0):
-        import imp
-    else:
-        import importlib as imp
+    import importlib as imp
     imp.reload(mhx_data)
     imp.reload(mhx)
 else:

@@ -18,7 +18,7 @@ bl_info = {
     "name": "DAZ Importer",
     "author": "Thomas Larsson",
     "version": (5,2,0),
-    "blender": (5,2,0),
+    "blender": (5,0,0),
     "location": "UI > DAZ Setup, DAZ Runtime",
     "description": "Importer for native DAZ files (.duf, .dsf)",
     "warning": "",
@@ -93,10 +93,7 @@ if not DEBUG:
     pass
 elif "bpy" in locals():
     print("Reloading DAZ Importer v %d.%d.%d" % bl_info["version"])
-    if bpy.app.version < (5,0,0):
-        import imp
-    else:
-        import importlib as imp
+    import importlib as imp
     for modname in Modules:
         exec("imp.reload(%s)" % modname)
     imp.reload(runtime.morph_armature)

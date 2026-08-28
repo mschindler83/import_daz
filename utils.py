@@ -11,8 +11,6 @@ from time import perf_counter
 from bpy.props import *
 from .settings import GS, LS, ES
 
-BLENDER3 = (bpy.app.version < (4,0,0))
-BLENDER4 = (bpy.app.version < (5,0,0))
 BLENDER5 = (bpy.app.version < (6,0,0))
 DAZ_PROPS = True
 
@@ -20,280 +18,176 @@ DAZ_PROPS = True
 #   Blender 5
 #-------------------------------------------------------------
 
-if BLENDER4:
-    def P2B(pb):
-        return pb.bone
+def P2B(pb):
+    return pb
 
-    def get_uv(uvlayer, n):
-        return uvlayer.data[n].uv
+def get_uv(uvlayer, n):
+    return uvlayer.uv[n].vector
 
-    def set_uv(uvlayer, n, uv):
-        uvlayer.data[n].uv = uv
+def set_uv(uvlayer, n, uv):
+    uvlayer.uv[n].vector = uv
 
-    def foreach_get_uv(uvlayer, array):
-        uvlayer.data.foreach_get("uv", array)
+def foreach_get_uv(uvlayer, array):
+    uvlayer.uv.foreach_get("vector", array)
 
-    def foreach_set_uv(uvlayer, array):
-        uvlayer.data.foreach_set("uv", array)
+def foreach_set_uv(uvlayer, array):
+    uvlayer.uv.foreach_set("vector", array)
 
-    def uv_length(uvlayer):
-        return len(uvlayer.data)
-else:
-    def P2B(pb):
-        return pb
-
-    def get_uv(uvlayer, n):
-        return uvlayer.uv[n].vector
-
-    def set_uv(uvlayer, n, uv):
-        uvlayer.uv[n].vector = uv
-
-    def foreach_get_uv(uvlayer, array):
-        uvlayer.uv.foreach_get("vector", array)
-
-    def foreach_set_uv(uvlayer, array):
-        uvlayer.uv.foreach_set("vector", array)
-
-    def uv_length(uvlayer):
-        return len(uvlayer.uv)
+def uv_length(uvlayer):
+    return len(uvlayer.uv)
 
 #-------------------------------------------------------------
 #   Action slots
 #-------------------------------------------------------------
 
-if bpy.app.version < (4,4,0):
 
-    def getActionBag(act, id_type='OBJECT'):
-        return act
+def getActionBag(act, id_type='OBJECT'):
+    if act and act.layers:
+        strip = act.layers[0].strips[0]
+        for slot in act.slots:
+            if slot.target_id_type == id_type:
+                return strip.channelbag(slot, ensure=True)
 
-    def getActionFcurves(act, id_type='OBJECT'):
-        if act:
-            return act.fcurves
-        else:
-            return []
+def getActionFcurves(act, id_type='OBJECT'):
+    bag = getActionBag(act, id_type)
+    if bag:
+        return bag.fcurves
+    else:
+        return []
 
-    def getRnaFcurves(rna, id_type='OBJECT'):
-        if rna.animation_data and rna.animation_data.action:
-            return rna.animation_data.action.fcurves
-        else:
-            return []
+def getRnaFcurves(rna):
+    if rna.animation_data and rna.animation_data.action:
+        return getActionFcurves(rna.animation_data.action, rna.id_type)
+    else:
+        return []
 
-    def setNewAction(rna, aname):
-        if rna.animation_data is None:
-            rna.animation_data_create()
-        act = bpy.data.actions.new(name=aname)
-        rna.animation_data.action = act
-        return act
-
-else:
-
-    def getActionBag(act, id_type='OBJECT'):
-        if act and act.layers:
-            strip = act.layers[0].strips[0]
-            for slot in act.slots:
-                if slot.target_id_type == id_type:
-                    return strip.channelbag(slot, ensure=True)
-
-    def getActionFcurves(act, id_type='OBJECT'):
-        bag = getActionBag(act, id_type)
-        if bag:
-            return bag.fcurves
-        else:
-            return []
-
-    def getRnaFcurves(rna):
-        if rna.animation_data and rna.animation_data.action:
-            return getActionFcurves(rna.animation_data.action, rna.id_type)
-        else:
-            return []
-
-    def setNewAction(rna, aname):
-        if rna.animation_data is None:
-            rna.animation_data_create()
-        act = bpy.data.actions.new(name=aname)
-        rna.animation_data.action = act
-        if rna.id_type == 'OBJECT':
-            path = "location"
-        elif rna.id_type == 'KEY':
-            path = 'key_blocks[0].value'
-        rna.keyframe_insert(path)
-        rna.keyframe_delete(path)
-        return act
+def setNewAction(rna, aname):
+    if rna.animation_data is None:
+        rna.animation_data_create()
+    act = bpy.data.actions.new(name=aname)
+    rna.animation_data.action = act
+    if rna.id_type == 'OBJECT':
+        path = "location"
+    elif rna.id_type == 'KEY':
+        path = 'key_blocks[0].value'
+    rna.keyframe_insert(path)
+    rna.keyframe_delete(path)
+    return act
 
 #-------------------------------------------------------------
 #   Bone layers
 #-------------------------------------------------------------
 
-if BLENDER3:
-    def enableBoneNumLayer(bone, rig, layer):
-        bone.layers = layer*[False] + [True] + (31-layer)*[False]
+def enableBoneNumLayer(bone, rig, layer):
+    for coll in rig.data.collections:
+        coll.unassign(bone)
+    coll = rig.data.collections.get(layer)
+    if coll is None:
+        coll = rig.data.collections.new(layer)
+    coll.assign(bone)
 
-    def setBoneNumLayer(bone, rig, layer, value=True):
-        bone.layers[layer] = value
-
-    def getBoneLayers(bone, rig):
-        return list(bone.layers)
-
-    def setBoneNumLayers(bone, rig, layers):
-        bone.layers = layers
-
-    def copyBoneLayers(src, trg, rig):
-        trg.layers = list(src.layers)
-
-    def isInNumLayer(bone, rig, layer):
-        if isinstance(layer, tuple):
-            return False
-        return bone.layers[layer]
-
-    def getRigLayers(rig):
-        return list(rig.data.layers)
-
-    def setRigLayers(rig, layers):
-        rig.data.layers = layers
-
-    def enableRigNumLayers(rig, layers):
-        rig.data.layers = 31*[False] + [True]
-        for idx in layers:
-            rig.data.layers[idx] = True
-        rig.data.layers[31] = False
-
-    def enableAllRigLayers(rig, value=True):
-        rig.data.layers = 32*[value]
-
-    def enableRigNumLayer(rig, layer, value=True):
-        rig.data.layers[layer] = value
-
-    def makeBoneCollections(rig, table):
-        return
-
-    def clearBoneCollections(rig, cnames):
-        pass
-
-    def assignOtherBones(rig, layer):
-        pass
-
-    def setBonegroup(pb, rig, bgname, color):
-        pb.bone_group = rig.pose.bone_groups[bgname]
-
-else:
-    def enableBoneNumLayer(bone, rig, layer):
-        for coll in rig.data.collections:
-            coll.unassign(bone)
-        coll = rig.data.collections.get(layer)
-        if coll is None:
-            coll = rig.data.collections.new(layer)
+def setBoneNumLayer(bone, rig, layer, value=True):
+    coll = rig.data.collections.get(layer)
+    if coll is None:
+        coll = rig.data.collections.new(layer)
+    if value:
         coll.assign(bone)
+    else:
+        coll.unassign(bone)
 
-    def setBoneNumLayer(bone, rig, layer, value=True):
+def getBoneLayers(bone, rig):
+    return [coll for coll in rig.data.collections if bone.name in coll.bones]
+
+def setBoneNumLayers(bone, rig, layers):
+    for coll in rig.data.collections:
+        coll.unassign(bone)
+    for coll in rig.data.collections.get(layer, []):
+        if layers.get(layer):
+            coll.assign(bone)
+
+def copyBoneLayers(src, trg, rig):
+    for coll in rig.data.collections:
+        if src.name in coll.bones:
+            coll.assign(trg)
+
+def isInNumLayer(bone, rig, layer):
+    if isinstance(layer, tuple):
+        for cname in layer:
+            coll = rig.data.collections.get(cname)
+            if (coll and bone.name in coll.bones):
+                return True
+        return False
+    coll = rig.data.collections.get(layer)
+    return (coll and bone.name in coll.bones)
+
+def getRigLayers(rig):
+    return [(coll,coll.is_visible) for coll in rig.data.collections]
+
+def setRigLayers(rig, layers):
+    for coll,vis in layers:
+        coll.is_visible = vis
+
+def enableRigNumLayers(rig, layers):
+    for coll in rig.data.collections:
+        coll.is_visible = False
+    for layer in layers:
         coll = rig.data.collections.get(layer)
         if coll is None:
             coll = rig.data.collections.new(layer)
-        if value:
-            coll.assign(bone)
-        else:
-            coll.unassign(bone)
+        coll.is_visible = True
 
-    def getBoneLayers(bone, rig):
-        return [coll for coll in rig.data.collections if bone.name in coll.bones]
+def enableAllRigLayers(rig, value=True):
+    for coll in rig.data.collections:
+        coll.is_visible = value
 
-    def setBoneNumLayers(bone, rig, layers):
-        for coll in rig.data.collections:
-            coll.unassign(bone)
-        for coll in rig.data.collections.get(layer, []):
-            if layers.get(layer):
-                coll.assign(bone)
+def enableRigNumLayer(rig, layer, value=True):
+    coll = rig.data.collections.get(layer)
+    if coll:
+        coll.is_visible = value
 
-    def copyBoneLayers(src, trg, rig):
-        for coll in rig.data.collections:
-            if src.name in coll.bones:
-                coll.assign(trg)
-
-    def isInNumLayer(bone, rig, layer):
-        if isinstance(layer, tuple):
-            for cname in layer:
-                coll = rig.data.collections.get(cname)
-                if (coll and bone.name in coll.bones):
-                    return True
-            return False
-        coll = rig.data.collections.get(layer)
-        return (coll and bone.name in coll.bones)
-
-    def getRigLayers(rig):
-        return [(coll,coll.is_visible) for coll in rig.data.collections]
-
-    def setRigLayers(rig, layers):
-        for coll,vis in layers:
-            coll.is_visible = vis
-
-    def enableRigNumLayers(rig, layers):
-        for coll in rig.data.collections:
-            coll.is_visible = False
-        for layer in layers:
-            coll = rig.data.collections.get(layer)
-            if coll is None:
-                coll = rig.data.collections.new(layer)
+def makeBoneCollections(rig, table):
+    for cname in table.keys():
+        coll = rig.data.collections.get(cname)
+        if coll is None:
+            coll = rig.data.collections.new(cname)
             coll.is_visible = True
 
-    def enableAllRigLayers(rig, value=True):
-        for coll in rig.data.collections:
-            coll.is_visible = value
+def assignOtherBones(rig, layer):
+    taken = {}
+    for coll in rig.data.collections:
+        for bone in rig.data.bones:
+            if bone.name in coll.bones:
+                taken[bone.name] = True
+    coll = rig.data.collections.get(layer)
+    if coll:
+        for bone in rig.data.bones:
+            if not taken.get(bone.name):
+                coll.assign(bone)
 
-    def enableRigNumLayer(rig, layer, value=True):
-        coll = rig.data.collections.get(layer)
-        if coll:
-            coll.is_visible = value
+def clearBoneCollections(rig, cnames):
+    for coll in list(rig.data.collections):
+        if coll is None:
+            print("What?", list(rig.data.collections))
+        elif coll.name in cnames or coll.name.startswith("Layer"):
+            rig.data.collections.remove(coll)
 
-    def makeBoneCollections(rig, table):
-        for cname in table.keys():
-            coll = rig.data.collections.get(cname)
-            if coll is None:
-                coll = rig.data.collections.new(cname)
-                coll.is_visible = True
-
-    def assignOtherBones(rig, layer):
-        taken = {}
-        for coll in rig.data.collections:
-            for bone in rig.data.bones:
-                if bone.name in coll.bones:
-                    taken[bone.name] = True
-        coll = rig.data.collections.get(layer)
-        if coll:
-            for bone in rig.data.bones:
-                if not taken.get(bone.name):
-                    coll.assign(bone)
-
-    def clearBoneCollections(rig, cnames):
-        for coll in list(rig.data.collections):
-            if coll is None:
-                print("What?", list(rig.data.collections))
-            elif coll.name in cnames or coll.name.startswith("Layer"):
-                rig.data.collections.remove(coll)
-
-    def setBonegroup(pb, rig, bgname, color):
-        if GS.useBoneColors and hasattr(pb, "color"):
-            pb.color.palette = 'CUSTOM'
-            pb.color.custom.normal = color
-            pb.color.custom.select = (0.6, 0.9, 1.0)
-            pb.color.custom.active = (1.0, 1.0, 0.8)
+def setBonegroup(pb, rig, bgname, color):
+    if GS.useBoneColors and hasattr(pb, "color"):
+        pb.color.palette = 'CUSTOM'
+        pb.color.custom.normal = color
+        pb.color.custom.select = (0.6, 0.9, 1.0)
+        pb.color.custom.active = (1.0, 1.0, 0.8)
 
 #-------------------------------------------------------------
 #   Standard layers
 #-------------------------------------------------------------
 
-if BLENDER3:
-    T_BONES = 0
-    T_CUSTOM = 1
-    T_TWEAK = 2
-    T_WIDGETS = 3
-    T_ERC = 4
-    T_HIDDEN = 31
-else:
-    T_BONES = "Bones"
-    T_CUSTOM = "Custom"
-    T_TWEAK = "Tweak"
-    T_WIDGETS = "Widgets"
-    T_ERC = "ERC"
-    T_HIDDEN = "Hidden"
+T_BONES = "Bones"
+T_CUSTOM = "Custom"
+T_TWEAK = "Tweak"
+T_WIDGETS = "Widgets"
+T_ERC = "ERC"
+T_HIDDEN = "Hidden"
 
 #-------------------------------------------------------------
 #   Blender 2.8 compatibility

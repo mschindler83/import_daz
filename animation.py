@@ -347,11 +347,7 @@ class HideOperator(DazOperator):
                 self.obhides.append((ob, ob.hide_get()))
                 ob.hide_set(False)
         if self.rig:
-            if BLENDER3:
-                self.boneLayers = list(self.rig.data.layers)
-                self.rig.data.layers = 32*[True]
-            else:
-                self.boneLayers = dict([(coll.name,coll) for coll in self.rig.data.collections if coll.is_visible])
+            self.boneLayers = dict([(coll.name,coll) for coll in self.rig.data.collections if coll.is_visible])
             #self.hideLayerColls(self.rig, context.view_layer.layer_collection)
             self.muted = muteDazFcurves(self.rig, True)
             context.view_layer.objects.active = self.rig
@@ -375,11 +371,8 @@ class HideOperator(DazOperator):
     def restoreState(self, context):
         from .driver import muteDazFcurves
         if self.rig:
-            if BLENDER3:
-                self.rig.data.layers = self.boneLayers
-            else:
-                for coll in self.rig.data.collections:
-                    coll.is_visible = (coll.name in self.boneLayers.keys())
+            for coll in self.rig.data.collections:
+                coll.is_visible = (coll.name in self.boneLayers.keys())
             muteDazFcurves(self.rig, dazRna(self.rig).DazDriversDisabled, muted=self.muted)
         for layer in self.layerColls:
             layer.exclude = False
@@ -1167,14 +1160,9 @@ class AnimatorBase(MultiFile, DazImageFile, FrameConverter, BoneOptions, MorphOp
             return False
         elif self.affectSelectedOnly:
             if P2B(pb).select:
-                if BLENDER3:
-                    for rlayer,blayer in zip(self.boneLayers, pb.bone.layers):
-                        if rlayer and blayer:
-                            return True
-                else:
-                    for coll in self.boneLayers.values():
-                        if pb.bone.name in coll.bones:
-                            return True
+                for coll in self.boneLayers.values():
+                    if pb.bone.name in coll.bones:
+                        return True
             return False
         else:
             return True
@@ -1891,37 +1879,24 @@ class DAZ_OT_ImportAsset(HideOperator, ActionOptions, AnimatorBase, StandardAnim
     useAsset = True
     preferredFolders = ["Poses/"]
 
-    if bpy.app.version < (3,3,0):
-        useAssetBrowser = False
+    useAssetBrowser = True
+    makeNewPoselib = False
+    poselibName = ""
 
-        makeNewPoselib : BoolProperty(
-            name = "New PoseLib",
-            description = "Unlink current pose library and make a new one",
-            default = True)
+    usePreviewImages : BoolProperty(
+        name = "Import Previews",
+        description = "Import preview images for imported poses",
+        default = True)
 
-        poselibName : StringProperty(
-            name = "PoseLib Name",
-            description = "Name of loaded poselib",
-            default = "PoseLib")
-    else:
-        useAssetBrowser = True
-        makeNewPoselib = False
-        poselibName = ""
+    assetTags : StringProperty(
+        name = "Tags",
+        description = "List of tags to add to the imported Poses",
+        default = "")
 
-        usePreviewImages : BoolProperty(
-            name = "Import Previews",
-            description = "Import preview images for imported poses",
-            default = True)
-
-        assetTags : StringProperty(
-            name = "Tags",
-            description = "List of tags to add to the imported Poses",
-            default = "")
-
-        assetAuthor : StringProperty(name = "Author")
-        assetDescription : StringProperty(name = "Description")
-        assetLicense : StringProperty(name = "License")
-        assetCopyright : StringProperty(name = "Copyright")
+    assetAuthor : StringProperty(name = "Author")
+    assetDescription : StringProperty(name = "Description")
+    assetLicense : StringProperty(name = "License")
+    assetCopyright : StringProperty(name = "Copyright")
 
 
     def draw(self, context):

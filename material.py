@@ -351,22 +351,13 @@ class Material(Asset, Channels):
             geo = geonode.data
         else:
             geo = None
-        if BLENDER3:
-            if GS.sssMethod == 'BURLEY_SKIN':
-                mtype = getMatType(self.name, geo)
-                return ('RANDOM_WALK' if mtype == 'SKIN' else 'BURLEY')
-            elif GS.sssMethod == 'RANDOM_WALK_SKIN':
-                return 'RANDOM_WALK'
-            else:
-                return GS.sssMethod
+        if GS.sssMethod == 'BURLEY_SKIN':
+            mtype = getMatType(self.name, geo)
+            return ('RANDOM_WALK_SKIN' if mtype == 'SKIN' else 'BURLEY')
+        elif GS.sssMethod == 'RANDOM_WALK_FIXED_RADIUS':
+            return 'RANDOM_WALK'
         else:
-            if GS.sssMethod == 'BURLEY_SKIN':
-                mtype = getMatType(self.name, geo)
-                return ('RANDOM_WALK_SKIN' if mtype == 'SKIN' else 'BURLEY')
-            elif GS.sssMethod == 'RANDOM_WALK_FIXED_RADIUS':
-                return 'RANDOM_WALK'
-            else:
-                return GS.sssMethod
+            return GS.sssMethod
 
 
     def build(self, context):
@@ -1280,17 +1271,7 @@ def checkRenderSettings(context, force):
     msg = ""
     msg += checkSettings(scn.cycles, renderSettingsCycles, handle, "Cycles Settings", force)
     msg += checkSettings(scn.render, renderSettingsRender, handle, "Render Settings", force)
-    if bpy.app.version >= (4,2,0):
-        msg += checkSettings(scn.eevee, renderSettingsEeveeNew, handle, "Eevee Settings", force)
-    else:
-        msg += checkSettings(scn.eevee, renderSettingsEeveeOld, handle, "Eevee Settings", force)
-        handle = GS.onLightSettings
-        if force:
-            handle = "UPDATE"
-        for light in getVisibleObjects(context):
-            if light.type == 'LIGHT':
-                header = ('Light "%s" settings' % light.name)
-                msg += checkSettings(light.data, lightSettings, handle, header, force)
+    msg += checkSettings(scn.eevee, renderSettingsEeveeNew, handle, "Eevee Settings", force)
 
     if msg:
         msg += "See http://diffeomorphic.blogspot.com/2020/04/render-settings.html for details."

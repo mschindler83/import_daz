@@ -11,10 +11,7 @@ from ..debug import DEBUG
 if DEBUG and "HDFeature" in locals():
     print("Reloading HD Tools")
     import bpy
-    if bpy.app.version < (5,0,0):
-        import imp
-    else:
-        import importlib as imp
+    import importlib as imp
     imp.reload(hd_morphs)
 else:
     print("Loading HD Tools")
@@ -34,9 +31,8 @@ class DAZ_PT_HDMesh(DAZ_PT_SetupTab, bpy.types.Panel):
 
     def draw(self, context):
         self.layout.operator("daz.copy_grafts_groups")
-        if bpy.app.version >= (2,90,0):
-            self.layout.operator("daz.make_multires")
-            self.layout.separator()
+        self.layout.operator("daz.make_multires")
+        self.layout.separator()
         self.layout.operator("daz.bake_maps")
         self.layout.operator("daz.load_baked_maps")
         self.layout.separator()

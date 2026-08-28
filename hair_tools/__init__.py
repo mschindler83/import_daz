@@ -8,21 +8,15 @@
 
 from ..debug import DEBUG
 import bpy
-BLENDER3 = (bpy.app.version < (4,0,0))
 
 if DEBUG and "HairToolsFeature" in locals():
     print("Reloading Hair Tools")
-    if bpy.app.version < (5,0,0):
-        import imp
-    else:
-        import importlib as imp
+    import importlib as imp
     imp.reload(hair_nodes)
     imp.reload(hair_builder)
     imp.reload(make_hair)
     imp.reload(hair_rig)
     imp.reload(hair_select)
-    if BLENDER3:
-        imp.reload(particles)
 else:
     print("Loading Hair Tools")
     from . import hair_nodes
@@ -30,8 +24,6 @@ else:
     from . import make_hair
     from . import hair_rig
     from . import hair_select
-    if BLENDER3:
-        from . import particles
     HairToolsFeature = True
 
 #----------------------------------------------------------
@@ -78,16 +70,6 @@ class DAZ_PT_HairProxy(DAZ_PT_SetupTab, bpy.types.Panel):
         self.layout.operator("daz.toggle_hair_locks")
 
 
-if BLENDER3:
-    class DAZ_PT_HairParticles(DAZ_PT_SetupTab, bpy.types.Panel):
-        bl_parent_id = "DAZ_PT_Hair"
-        bl_idname = "DAZ_PT_HairParticles"
-        bl_label = "Hair Particles"
-
-        def draw(self, context):
-            self.layout.operator("daz.update_hair")
-            self.layout.operator("daz.color_hair")
-            self.layout.operator("daz.combine_hairs")
 
 #----------------------------------------------------------
 #   Register
@@ -109,10 +91,6 @@ def register():
         make_hair.register()
         hair_rig.register()
         hair_select.register()
-        if BLENDER3:
-            bpy.utils.register_class(DAZ_PT_HairParticles)
-            from .import particles
-            particles.register()
     except (RuntimeError, ValueError):
         pass
 
@@ -125,10 +103,6 @@ def unregister():
         make_hair.unregister()
         hair_rig.unregister()
         hair_select.unregister()
-        if BLENDER3:
-            bpy.utils.unregister_class(DAZ_PT_HairParticles)
-            from .import particles
-            particles.unregister()
     except (RuntimeError, ValueError):
         pass
 

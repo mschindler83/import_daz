@@ -89,10 +89,7 @@ class MetaData:
         self.parameters = entry["parameters"]
 
         default_layers = [R_ROOT, R_TORSO, R_FACE, R_ARMIK_L, R_ARMIK_R, R_LEGIK_L, R_LEGIK_R]
-        if BLENDER3:
-            self.layers = default_layers
-        else:
-            self.layers = entry.get("layers", default_layers)
+        self.layers = entry.get("layers", default_layers)
 
         self.gizmos = {
             "eye.L" :           ["GZM_Circle", 0.25, R_FACE],
@@ -108,16 +105,9 @@ class MetaData:
             "gaze.R" :          ["GZM_Circle", 0.25, R_FACE],
             "ik_tongue" :       ["GZM_Cone", 0.4, R_FACE],
         }
-        if BLENDER3:
-            table = dict([(lname,layer) for layer,lname in RigifyLayers.items()])
-            for key,data in entry["gizmos"].items():
-                gizmo,scale,lname = data
-                self.gizmos[key] = (gizmo, scale, table[lname])
-            self.layer_correct = {}
-        else:
-            for key,data in entry["gizmos"].items():
-                self.gizmos[key] = data
-            self.layer_correct = entry.get("layer_correct", {})
+        for key,data in entry["gizmos"].items():
+            self.gizmos[key] = data
+        self.layer_correct = entry.get("layer_correct", {})
 
 
 class DazData:
@@ -162,11 +152,6 @@ class RigifyCommon:
     gizmoFile = "mhx"
     reuseBendTwists = True
 
-    if BLENDER3:
-        GroupBones = [
-            ("Face ", R_FACE, 2, 6),
-            ("Face (detail) ", R_DETAIL, 2, 3),
-            ("Custom ", R_CUSTOM, 13, 6)]
 
 
     def setupDazSkeleton(self, rig):
@@ -244,8 +229,6 @@ class MetaMaker(RigifyCommon):
         #self.layout.prop(self, "useAutoAlign")
         #self.layout.prop(self, "useRecalcRoll")
         self.layout.prop(self, "useSplitShin")
-        if BLENDER3:
-            self.layout.prop(self, "useCustomLayers")
 
 
     def createMeta(self, context):
@@ -378,8 +361,6 @@ class MetaMaker(RigifyCommon):
         self.fixHands(meta)
         if self.meta_type == "human":
             self.fitLimbs(meta, hip)
-        if BLENDER3 and meta["DazCustomLayers"]:
-            self.addGroupBones(meta, rig)
 
         ebones = meta.data.edit_bones
         for eb in ebones:
@@ -403,15 +384,14 @@ class MetaMaker(RigifyCommon):
 
         print("  Rigify armature data")
         setRigifyAttributes(rig.data, meta.data)
-        if not BLENDER3:
-            knownlayers = [T_BONES, T_CUSTOM, T_TWEAK, T_WIDGETS, T_HIDDEN]
-            for bcoll in rig.data.collections:
-                if bcoll.name in knownlayers:
-                    continue
-                mcoll = meta.data.collections.get(bcoll.name)
-                if mcoll is None:
-                    mcoll = meta.data.collections.new(bcoll.name)
-                setRigifyAttributes(bcoll, mcoll)
+        knownlayers = [T_BONES, T_CUSTOM, T_TWEAK, T_WIDGETS, T_HIDDEN]
+        for bcoll in rig.data.collections:
+            if bcoll.name in knownlayers:
+                continue
+            mcoll = meta.data.collections.get(bcoll.name)
+            if mcoll is None:
+                mcoll = meta.data.collections.new(bcoll.name)
+            setRigifyAttributes(bcoll, mcoll)
 
         def getParams(attrs):
             return [(key, getattr(attrs, key)) for key in dir(attrs) if key[0] != "_"]
@@ -445,20 +425,15 @@ class MetaMaker(RigifyCommon):
                 setParams(pb.rigify_parameters, params)
             for bname,pname in cbones.items():
                 mbone = meta.data.bones[bname]
-                if BLENDER3:
-                    setBoneNumLayer(mbone, meta, R_CUSTOM)
-                else:
-                    colls = getBoneLayers(mbone, rig)
-                    layer = (colls[0].name if colls else R_CUSTOM)
-                    setBoneNumLayer(mbone, meta, layer)
-                    db = rig.pose.bones[bname]
-                    pb = meta.pose.bones[bname]
-                    copyConstraints(db, pb, meta)
+                colls = getBoneLayers(mbone, rig)
+                layer = (colls[0].name if colls else R_CUSTOM)
+                setBoneNumLayer(mbone, meta, layer)
+                db = rig.pose.bones[bname]
+                pb = meta.pose.bones[bname]
+                copyConstraints(db, pb, meta)
 
         print("  Add props to rigify")
         connect,disconnect = self.addRigifyProps(meta)
-        if BLENDER3 and meta["DazCustomLayers"]:
-            self.setupGroupBones(meta)
 
         print("  Set connected")
         setMode('EDIT')
@@ -610,7 +585,7 @@ class MetaMaker(RigifyCommon):
                 pb.rigify_parameters.rotation_axis = 'x'
                 pb.rigify_parameters.auto_align_extremity = self.useAutoAlign
             elif rigify_type == "limbs.leg":
-                pb.rigify_parameters.extra_ik_toe = (bpy.app.version >= (3,3,0))
+                pb.rigify_parameters.extra_ik_toe = True
                 pb.rigify_parameters.rotation_axis = 'x'
                 pb.rigify_parameters.auto_align_extremity = self.useAutoAlign
             elif rigify_type == "limbs.arm":
@@ -638,28 +613,6 @@ class MetaMaker(RigifyCommon):
         return connect, disconnect
 
 
-    if BLENDER3:
-        def addGroupBones(self, meta, rig):
-            tail = (0,0,10*GS.scale)
-            for bname,layer,row,group in self.GroupBones:
-                eb = meta.data.edit_bones.new(bname)
-                eb.head = (0,0,0)
-                eb.tail = tail
-                enableBoneNumLayer(eb, meta, layer)
-
-        def setupGroupBones(self, meta):
-            for bname,layer,row,group in self.GroupBones:
-                pb = meta.pose.bones[bname]
-                pb["rigify_type"] = "basic.pivot"
-                enableRigNumLayer(meta, layer)
-                rlayer = meta.data.rigify_layers[layer]
-                rlayer.name = bname
-                rlayer.row = row
-                rlayer.group = group
-            meta.data.layers[0] = False
-            rlayer = meta.data.rigify_layers[0]
-            rlayer.name = ""
-            rlayer.group = 6
 
 
     def getChildren(self, pb):
@@ -823,8 +776,7 @@ class Rigifier(RigifyCommon):
         if self.shaftControl != 'NONE':
             self.layout.prop(self, "shaftName")
         self.layout.prop(self, "addNondeformExtras")
-        if not BLENDER4:
-            self.layout.prop(self, "useDisplayTransform")
+        self.layout.prop(self, "useDisplayTransform")
 
 
     def setupExtras(self, context, rig, meta):
@@ -960,7 +912,7 @@ class Rigifier(RigifyCommon):
             coll.objects.link(rig)
         self.meshes = (getMeshChildren(dazrig) if dazrig else getMeshChildren(rig))
 
-        if not BLENDER3 and "Root" in gen.data.collections.keys():
+        if 'Root' in gen.data.collections.keys():
             # Add rig UI
             makeBoneCollections(gen, RigifyLayers)
             root = gen.data.collections["Root"]
@@ -1039,11 +991,6 @@ class Rigifier(RigifyCommon):
                     newDefBones.append((defname, orgname))
 
         # Group bones
-        if BLENDER3 and meta["DazCustomLayers"]:
-            print("  Create group bones")
-            for data in self.GroupBones:
-                eb = gen.data.edit_bones[data[0]]
-                enableBoneNumLayer(eb, gen, R_HELP)
 
         # Add parents to extra bones
         print("  Add parents to extra bones")
@@ -1254,11 +1201,6 @@ class Rigifier(RigifyCommon):
         modernizeBones(gen)
         dazRna(gen).DazRig = meta.get("DazRigifyType", "")
         name = rig.name
-        if BLENDER3:
-            from .rigify_snap import setRigifyFkIk, setRigifyLayers, clearOtherRigify
-            setRigifyFkIk(gen, 0.0, False, 0)
-            setRigifyLayers(rig, True, gen.data.layers)
-            clearOtherRigify(gen, False, 0)
         if activateObject(context, rig):
             deleteObjects(context, [rig])
         if self.useDeleteMeta:
@@ -1298,7 +1240,7 @@ class Rigifier(RigifyCommon):
                   par.parent.name in BD.FaceRigs):
                 return R_DETAIL, True
 
-        if db and not BLENDER3:
+        if db:
             knownlayers = [T_BONES, T_CUSTOM, T_TWEAK, T_WIDGETS, T_HIDDEN]
             for bcoll in getBoneLayers(db, rig):
                 if bcoll.name not in knownlayers:
@@ -1487,12 +1429,6 @@ class Rigifier(RigifyCommon):
     def addGizmos(self, gen):
         self.makeGizmos(True, ["GZM_MJaw", "GZM_Foot", "GZM_Gaze", "GZM_Pectoral", "GZM_MTongue", "GZM_Knuckle"])
         color = (1.0, 0.5, 0)
-        if BLENDER3:
-            bgrp = gen.pose.bone_groups.new(name="DAZ")
-            bgrp.color_set = 'CUSTOM'
-            bgrp.colors.normal = color
-            bgrp.colors.select = (0.596, 0.898, 1.0)
-            bgrp.colors.active = (0.769, 1, 1)
         for pb in gen.pose.bones:
             lname = pb.name.lower()
             if pb.name in self.meta.gizmos.keys():

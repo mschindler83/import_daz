@@ -11,10 +11,7 @@ from ..debug import DEBUG
 if DEBUG and "FacsFeature" in locals():
     print("Reloading FACS Tools")
     import bpy
-    if bpy.app.version < (5,0,0):
-        import imp
-    else:
-        import importlib as imp
+    import importlib as imp
     imp.reload(facsbase)
     imp.reload(facecap)
     imp.reload(livelink)

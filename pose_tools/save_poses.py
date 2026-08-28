@@ -90,11 +90,7 @@ class PoseCollector:
             if ob.type == 'ARMATURE':
                 rig = ob
                 amt = ob.data
-                if BLENDER3:
-                    ostruct["layers"] = amt.layers
-                    ostruct["layers_protected"] = amt.layers_protected
-                else:
-                    ostruct["collections"] = [coll.name for coll in amt.collections if coll.is_visible]
+                ostruct["collections"] = [coll.name for coll in amt.collections if coll.is_visible]
                 pstruct = ostruct["pose"] = {}
                 for pb in rig.pose.bones:
                     self.saveTransform(pb, rig, pstruct)
@@ -248,11 +244,7 @@ class PoseSetter:
                         pass
             if ob.type == 'ARMATURE':
                 rig = ob
-                if BLENDER3:
-                    if "layers" in ostruct.keys():
-                        rig.layers = ostruct["layers"]
-                        rig.data.layers_protected = ostruct["layers_protected"]
-                elif "collections" in ostruct.keys():
+                if "collections" in ostruct.keys():
                     for coll in rig.data.collections:
                         coll.is_visible = False
                     for cname in ostruct["collections"]:

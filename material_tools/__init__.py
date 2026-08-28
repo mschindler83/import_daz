@@ -11,10 +11,7 @@ from ..debug import DEBUG
 if DEBUG and "MaterialToolsFeature" in locals():
     print("Reloading Material Tools")
     import bpy
-    if bpy.app.version < (5,0,0):
-        import imp
-    else:
-        import importlib as imp
+    import importlib as imp
     imp.reload(editor)
     imp.reload(udim)
     imp.reload(decal)

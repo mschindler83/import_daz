@@ -144,8 +144,6 @@ class DAZ_OT_AddDisplayTransform(DazOperator, IsArmature):
 
     def run(self, context):
         from ..rig_utils import addDisplayTransform
-        if BLENDER4:
-            raise DazError("bpy.ops.daz.add_display_transform requires Blender 5.0 or higher")
         rig = context.object
         meshes = getSelectedMeshes(context)
         if len(meshes) != 1:

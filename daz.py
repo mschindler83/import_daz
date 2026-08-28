@@ -397,10 +397,7 @@ class DAZ_OT_GlobalSettings(DazPropsOperator):
     enums = [('BURLEY_SKIN', "Burley/Skin", "Use Random walk (skin) for skin materials,\nChristensen-Burley for other materials"),
              ('BURLEY', "Christensen-Burley", "Christensen-Burley"),
              ('RANDOM_WALK', "Random Walk", "Random walk")]
-    if BLENDER3:
-        enums.append(('RANDOM_WALK_FIXED_RADIUS', "Random Walk (Fixed Radius)", "Random Walk (Fixed Radius)"))
-    else:
-        enums.append(('RANDOM_WALK_SKIN', "Random Walk (Skin)", "Random Walk (Skin)"))
+    enums.append(('RANDOM_WALK_SKIN', "Random Walk (Skin)", "Random Walk (Skin)"))
     sssMethod : EnumProperty(
         items = enums,
         name = "SSS Method",
@@ -614,8 +611,7 @@ class DAZ_OT_GlobalSettings(DazPropsOperator):
         description = "Add influence (pinning) vertex groups for simulation")
 
     enums = [('MATERIAL', "Material", "Create material node groups")]
-    if bpy.app.version >= (3,1,0):
-        enums += [('GEONODES', "Geometry Nodes", "Create geometry node groups")]
+    enums += [('GEONODES', "Geometry Nodes", "Create geometry node groups")]
     enums += [('IGNORE', "Ignore", "Ignore shells"),
               ('MESH', "Mesh (Debug)", "Create empty meshes. For debugging only")]
     shellMethod : EnumProperty(
@@ -849,8 +845,6 @@ class DAZ_OT_GlobalSettings(DazPropsOperator):
         box.prop(self, "useMaterialsByName")
         box.prop(self, "useStoreMaterialMapping")
         box.prop(self, "useStripUuid")
-        if bpy.app.version < (3,4,0):
-            box.prop(self, "useFakeCaustics")
         drawEnum(self, box, "imageInterpolation")
         box.prop(self, "useUnusedTextures")
         box.prop(self, "useShellDrivers")

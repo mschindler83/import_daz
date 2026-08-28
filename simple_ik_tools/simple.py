@@ -66,14 +66,10 @@ class SimpleIK(BoneChains):
 
 
     def changeLayers(self, rig, on, off):
-        if BLENDER3:
-            rig.data.layers[on] = True
-            rig.data.layers[off] = False
-        else:
-            coll = rig.data.collections[SimpleLayers[on]]
-            coll.is_visible = True
-            coll = rig.data.collections[SimpleLayers[off]]
-            coll.is_visible = False
+        coll = rig.data.collections[SimpleLayers[on]]
+        coll.is_visible = True
+        coll = rig.data.collections[SimpleLayers[off]]
+        coll.is_visible = False
 
 
     def insertIKKeys(self, rig, frame):
@@ -347,8 +343,6 @@ class DAZ_OT_AddSimpleIK(DazPropsOperator):
             self.setCustomShape(pb, circle, s)
 
         def makeCustomShape(csname, gname, offset=(0,0,0), scale=(1,1,1), rotation=(0,0,0)):
-            if bpy.app.version < (3,1,0):
-                return
             data = self.customShapes.get(gname)
             if data:
                 ob = data[0]
@@ -398,7 +392,6 @@ class DAZ_OT_AddSimpleIK(DazPropsOperator):
         makeCustomShape("CS_Pect", "CS_Circle", (0,1,0), 0.15)
         makeCustomShape("CS_Foot", "CS_Circle", (0,0.5,0), (0.5,1,1), (90,0,0))
         makeCustomShape("CS_ToeFk", "CS_Circle", (0,0.5,0), (1,1,0.5), (90,0,0))
-        self.makeBoneGroups(rig)
 
         for pb in rig.pose.bones:
             lname = pb.name.lower()
@@ -510,19 +503,6 @@ class DAZ_OT_AddSimpleIK(DazPropsOperator):
         "Face" :    (1,0.5,0),
         "Special" :  (1,0,1),
     }
-
-    def makeBoneGroups(self, rig):
-        if BLENDER3:
-            if len(rig.pose.bone_groups) != len(self.BoneGroups):
-                for bg in list(rig.pose.bone_groups):
-                    rig.pose.bone_groups.remove(bg)
-                for bgname,color in self.BoneGroups.items():
-                    bg = rig.pose.bone_groups.new(name=bgname)
-                    bg.color_set = 'CUSTOM'
-                    bg.colors.normal = color
-                    bg.colors.select = (0.6, 0.9, 1.0)
-                    bg.colors.active = (1.0, 1.0, 0.8)
-
 
     def addToLayer(self, pb, layer, rig, bgname, unique=True):
         if isinstance(layer, tuple):
@@ -785,17 +765,11 @@ def setSimpleLayers(rig, layers, useIk):
     else:
         enable = [S_LARMFK, S_RARMFK, S_LLEGFK, S_RLEGFK]
         disable = [S_LARMIK, S_RARMIK, S_LLEGIK, S_RLEGIK]
-    if BLENDER3:
-        for n in enable:
-            layers[n] = True
-        for n in disable:
-            layers[n] = False
-    else:
-        for cname in enable:
-            layers[cname] = rig.data.collections.get(cname)
-        for cname in disable:
-            if cname in layers.keys():
-                del layers[cname]
+    for cname in enable:
+        layers[cname] = rig.data.collections.get(cname)
+    for cname in disable:
+        if cname in layers.keys():
+            del layers[cname]
     return layers
 
 
@@ -879,12 +853,8 @@ class DAZ_OT_SnapSimpleFK(DazOperator):
 
     prefix : StringProperty()
     type : StringProperty()
-    if BLENDER3:
-        on : IntProperty()
-        off : IntProperty()
-    else:
-        on : StringProperty()
-        off : StringProperty()
+    on : StringProperty()
+    off : StringProperty()
 
     def run(self, context):
         rig = context.object
@@ -1133,12 +1103,8 @@ class DAZ_OT_SnapSimpleIK(DazOperator):
     prefix : StringProperty()
     type : StringProperty()
     pole : StringProperty()
-    if BLENDER3:
-        on : IntProperty()
-        off : IntProperty()
-    else:
-        on : StringProperty()
-        off : StringProperty()
+    on : StringProperty()
+    off : StringProperty()
 
     def run(self, context):
         rig = context.object
@@ -1194,40 +1160,27 @@ class DAZ_OT_SelectNamedLayers(DazOperator, IsArmature):
 
     def run(self, context):
         rig = context.object
-        if BLENDER3:
-            rig.data.layers = 16*[False] + 15*[True] + [False]
-        else:
-            for coll in rig.data.collections:
-                coll.is_visible = False
-            for cname in SimpleLayers.values():
-                coll = rig.data.collections.get(cname)
-                if coll and cname != "Hidden":
-                    coll.is_visible = True
+        for coll in rig.data.collections:
+            coll.is_visible = False
+        for cname in SimpleLayers.values():
+            coll = rig.data.collections.get(cname)
+            if coll and cname != "Hidden":
+                coll.is_visible = True
 
 
 class DAZ_OT_UnSelectNamedLayers(DazOperator, IsArmature):
     bl_idname = "daz.unselect_named_layers"
-    bl_label = ("Only Active" if BLENDER3 else "None")
+    bl_label = "None"
     bl_description = "Unselect all named and unnamed layers except active"
     bl_options = {'UNDO'}
 
     def run(self, context):
         rig = context.object
-        if BLENDER3:
-            m = 16
-            bone = rig.data.bones.active
-            if bone:
-                for n in range(16,30):
-                    if bone.layers[n]:
-                        m = n
-                        break
-            rig.data.layers = m*[False] + [True] + (S_HIDDEN-m)*[False]
-        else:
-            coll0 = rig.data.collections.active
-            for cname in SimpleLayers.values():
-                coll = rig.data.collections.get(cname)
-                if coll and coll != coll0:
-                    coll.is_visible = False
+        coll0 = rig.data.collections.active
+        for cname in SimpleLayers.values():
+            coll = rig.data.collections.get(cname)
+            if coll and coll != coll0:
+                coll.is_visible = False
 
 #----------------------------------------------------------
 #   Initialize

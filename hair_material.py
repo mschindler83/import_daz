@@ -322,11 +322,8 @@ class HairEeveeTree(HairBaseTree, PbrTree):
         self.links.new(ramp.outputs["Alpha"], pbr.inputs["Alpha"])
         pbr.inputs["Metallic"].default_value = 0.0
         pbr.inputs["Roughness"].default_value = 0.2
-        if BLENDER3:
-            pbr.inputs["Specular"].default_value = 2
-        else:
-            pbr.inputs["IOR"].default_value = 1.5
-            pbr.inputs["Specular IOR Level"].default_value = 2
+        pbr.inputs["IOR"].default_value = 1.5
+        pbr.inputs["Specular IOR Level"].default_value = 2
         self.postPBR = False
         self.buildCutout()
         self.buildOutput()

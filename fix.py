@@ -682,7 +682,7 @@ class Fixer(DriverUser):
     #-------------------------------------------------------------
 
     def addDisplayTransform(self, rig, headname):
-         if self.useDisplayTransform and not BLENDER4:
+         if self.useDisplayTransform:
             from .finger import getGenesis
             mesh = getGenesis(self.meshes)
             if not (mesh and addDisplayTransform(rig, mesh, headname)):

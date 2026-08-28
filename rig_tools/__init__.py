@@ -11,10 +11,7 @@ from ..debug import DEBUG
 if DEBUG and "RigToolsFeature" in locals():
     print("Reloading Rig Tools")
     import bpy
-    if bpy.app.version < (5,0,0):
-        import imp
-    else:
-        import importlib as imp
+    import importlib as imp
     imp.reload(varia)
     imp.reload(connect_chains)
     imp.reload(ikgoals)

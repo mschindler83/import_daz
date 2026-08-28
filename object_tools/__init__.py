@@ -11,10 +11,7 @@ from ..debug import DEBUG
 if DEBUG and "ObjectToolsFeature" in locals():
     print("Reloading Object Tools")
     import bpy
-    if bpy.app.version < (5,0,0):
-        import imp
-    else:
-        import importlib as imp
+    import importlib as imp
     imp.reload(mannequin)
     imp.reload(categorize)
     imp.reload(scale)

@@ -387,19 +387,11 @@ class DAZ_OT_AddWinders(Pinner, DazPropsOperator, GizmoUser, IsArmature):
     def draw(self, context):
         Pinner.draw(self, context)
         self.layout.prop(self, "strength")
-        if BLENDER3:
-            self.layout.prop(self, "winderLayer")
-            self.layout.prop(self, "windedLayer")
         self.layout.prop(self, "useBaseLocation")
         self.layout.prop(self, "useLocation")
         self.layout.prop(self, "useScale")
 
     def invoke(self, context, event):
-        if BLENDER3:
-            rig = context.object
-            if rig and dazRna(rig).DazRig == "mhx":
-                self.winderLayer = 17
-                self.windedLayer = 18
         return DazPropsOperator.invoke(self, context, event)
 
     def run(self, context):
@@ -420,10 +412,7 @@ class DAZ_OT_AddWinders(Pinner, DazPropsOperator, GizmoUser, IsArmature):
         for root in self.findPoseRoots(rig):
             windname = "Wind_%s" % root.name
             bnames = findChildren(root)
-            if BLENDER3:
-                layers = [self.winderLayer-1, self.windedLayer-1]
-            else:
-                layers = ("Custom", "Deform")
+            layers = ("Custom", "Deform")
             dx = 1.0/len(bnames)
             influs = []
             for n,bname in enumerate(bnames):

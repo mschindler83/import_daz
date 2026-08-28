@@ -121,8 +121,7 @@ class HairOptions:
              ('CURVES', "Curves", "Ordinary curves"),
              ('POLYLINES', "Polylines", "Line meshes, one for each strand"),
              ('MESH', "Mesh", "Single line mesh")]
-    if not BLENDER3:
-        enums = [('HAIR_CURVES', "Hair Curves", "Hair curves")] + enums
+    enums = [('HAIR_CURVES', "Hair Curves", "Hair curves")] + enums
     output : EnumProperty(
         items = enums,
         name = "Output",
@@ -891,10 +890,7 @@ class DAZ_OT_MakeHair(MatchOperator, CombineHair, IsMesh, HairOptions, HairBuild
         if self.useSnapRoots:
             for hsys in hsystems.values():
                 hsys.snapRoots(context, hum)
-        if self.output == 'PARTICLES' and BLENDER3:
-            self.makeParticleHair(context, hsystems, hum)
-        else:
-            self.makePolylineHair(context, hsystems, hair, hum, duphair)
+        self.makePolylineHair(context, hsystems, hair, hum, duphair)
         for hair in hairs:
             unlinkAll(hair, True)
         #deleteObjects(context, hairs)
@@ -1370,8 +1366,6 @@ class DAZ_OT_MakeHair(MatchOperator, CombineHair, IsMesh, HairOptions, HairBuild
                         addFade(mat)
                     mats.append(mat)
             for mat in mats:
-                if self.output == 'PARTICLES' and BLENDER3:
-                    hum.data.materials.append(mat)
                 self.materials.append(mat)
         else:
             img = None

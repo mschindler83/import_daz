@@ -48,34 +48,19 @@ from .tree import addGroupInput, addGroupOutput, getGroupInput, colorOutput, Mix
 #   Tangent                 Tangent
 #   Weight                  Weight
 
-if BLENDER3:
-    class PbrSockets:
-        SubsurfWeight = "Subsurface"
-        Specular = "Specular"
-        CoatWeight = "Clearcoat"
-        CoatRoughness = "Clearcoat Roughness"
-        CoatNormal = "Clearcoat Normal"
-        SheenWeight = "Sheen"
-        TransmitWeight = "Transmission"
-        EmitColor = "Emission"
-        TintComponents = 1
+class PbrSockets:
+    SubsurfWeight = "Subsurface Weight"
+    Specular = "Specular IOR Level"
+    CoatWeight = "Coat Weight"
+    CoatRoughness = "Coat Roughness"
+    CoatNormal = "Coat Normal"
+    SheenWeight = "Sheen Weight"
+    TransmitWeight = "Transmission Weight"
+    EmitColor = "Emission Color"
+    TintComponents = 4
 
-    def Tint(x):
-        return x
-else:
-    class PbrSockets:
-        SubsurfWeight = "Subsurface Weight"
-        Specular = "Specular IOR Level"
-        CoatWeight = "Coat Weight"
-        CoatRoughness = "Coat Roughness"
-        CoatNormal = "Coat Normal"
-        SheenWeight = "Sheen Weight"
-        TransmitWeight = "Transmission Weight"
-        EmitColor = "Emission Color"
-        TintComponents = 4
-
-    def Tint(x):
-        return (x,x,x,1)
+def Tint(x):
+    return (x,x,x,1)
 
 PBR = PbrSockets()
 # ---------------------------------------------------------------------
@@ -159,8 +144,6 @@ class PbrTree(CyclesTree):
             self.links.new(link.from_socket, trans.inputs["Fac"])
         self.replaceSlot(self.pbr, PBR.SubsurfWeight, 0.0)
         self.thickness = None
-        if BLENDER3:
-            self.replaceSlot(self.pbr, "Subsurface Color", (1,1,1,1))
         self.replaceSlot(self.pbr, "Subsurface Radius", (0,0,0))
 
 
@@ -269,23 +252,16 @@ class PbrTree(CyclesTree):
         if self.owner.useTranslucency:
             self.linkColor(tex, self.pbr, color, "Base Color")
             return
-        elif BLENDER3:
-            self.linkColor(tex, self.pbr, color, "Base Color")
-            if transwt > 0:
-                gamma = self.addGamma(transcolor, transtex, "Gamma", 3.5)
-                self.links.new(gamma.outputs["Color"], self.pbr.inputs["Subsurface Color"])
-                self.thickness = 1.0
+        if transwt > 0:
+            gamma = self.addGamma(transcolor, transtex, "Gamma", 3.5)
+            mix,a,b,out = self.addMixRgbNode('MIX')
+            self.linkScalar(wttex, mix, transwt, 0)
+            self.linkColor(tex, mix, color, MixRGB.Color1)
+            self.links.new(gamma.outputs["Color"], b)
+            self.links.new(out, self.pbr.inputs["Base Color"])
+            self.thickness = 1.0
         else:
-            if transwt > 0:
-                gamma = self.addGamma(transcolor, transtex, "Gamma", 3.5)
-                mix,a,b,out = self.addMixRgbNode('MIX')
-                self.linkScalar(wttex, mix, transwt, 0)
-                self.linkColor(tex, mix, color, MixRGB.Color1)
-                self.links.new(gamma.outputs["Color"], b)
-                self.links.new(out, self.pbr.inputs["Base Color"])
-                self.thickness = 1.0
-            else:
-                self.linkColor(tex, self.pbr, color, "Base Color")
+            self.linkColor(tex, self.pbr, color, "Base Color")
 
         method = self.owner.getSSSMethod()
         self.pbr.subsurface_method = method
@@ -293,18 +269,14 @@ class PbrTree(CyclesTree):
 
         radius,radtex = self.getSSSRadius(transcolor, ssscolor, ssstex, sssmode)
         radius,ior,aniso = self.fixSSSRadius(radius)
-        if not BLENDER3:
-            rmax = max(radius)
-            if rmax > 0:
-                radius /= rmax
-            self.pbr.inputs["Subsurface Scale"].default_value = rmax
-            if method != 'BURLEY':
-                self.pbr.inputs["Subsurface Anisotropy"].default_value = aniso
-            elif method == 'RANDOM_WALK_SKIN':
-                self.pbr.inputs["Subsurface IOR"].default_value = ior
-        elif method != 'BURLEY' and hasattr(self.pbr.inputs, "Subsurface IOR"):
-            self.pbr.inputs["Subsurface IOR"].default_value = ior
+        rmax = max(radius)
+        if rmax > 0:
+            radius /= rmax
+        self.pbr.inputs["Subsurface Scale"].default_value = rmax
+        if method != 'BURLEY':
             self.pbr.inputs["Subsurface Anisotropy"].default_value = aniso
+        elif method == 'RANDOM_WALK_SKIN':
+            self.pbr.inputs["Subsurface IOR"].default_value = ior
         self.linkColor(radtex, self.pbr, radius, "Subsurface Radius")
         self.column += 1
         self.endSSS()
@@ -334,19 +306,10 @@ class PbrTree(CyclesTree):
             if self.owner.basemix == 0:    # Metallic/Roughness
                 # principled specular = iray glossy reflectivity * iray glossy layered weight * iray glossy color / 0.8
                 refl,refltex,_ = self.getColorTex(["Glossy Reflectivity"], "NONE", 0.5, False, useTex)
-                if BLENDER3:
-                    refltex = self.mixTexs('MULTIPLY', strtex, refltex)
-                    refl = 1.25 * refl * strength
             elif self.owner.basemix == 1:  # Specular/Glossiness
                 spec,spectex,_ = self.getColorTex(["Glossy Specular"], "COLOR", WHITE, True, useTex)
-                if BLENDER3:
-                    # principled specular = iray glossy specular * iray glossy layered weight * 16
-                    color,coltex,_ = self.getColorTex(["Glossy Specular"], "COLOR", WHITE, True, useTex)
-                    refl = 16 * strength
-                    refltex = spectex
-                else:
-                    refl = averageColor(spec) / 0.078
-                    refltex = spectex
+                refl = averageColor(spec) / 0.078
+                refltex = spectex
         elif self.owner.shader == 'PBRSKIN':
             if self.isEnabled("Dual Lobe Specular"):
                 refl,refltex,_ = self.getColorTex(["Dual Lobe Specular Weight"], "NONE", 1.0, False)
@@ -356,18 +319,13 @@ class PbrTree(CyclesTree):
         if useTex is None:
             refltex = None
 
-        if BLENDER3:
-            spec = clamp(refl*averageColor(color))
-            spectex = self.mixTexs('MULTIPLY', refltex, coltex)
-            self.linkScalar(spectex, self.pbr, spec, "Specular")
-        else:
-            self.replaceSlot(self.pbr, "IOR", 1.5)
-            if strength == 0:
-                refl = 0
-            self.linkScalar(refltex, self.pbr, refl, "Specular IOR Level")
-            color = strength*Vector(color)
-            coltex = self.mixTexs('MULTIPLY', strtex, coltex)
-            self.linkColor(coltex, self.pbr, color, "Specular Tint")
+        self.replaceSlot(self.pbr, "IOR", 1.5)
+        if strength == 0:
+            refl = 0
+        self.linkScalar(refltex, self.pbr, refl, "Specular IOR Level")
+        color = strength*Vector(color)
+        coltex = self.mixTexs('MULTIPLY', strtex, coltex)
+        self.linkColor(coltex, self.pbr, color, "Specular Tint")
 
     #-------------------------------------------------------------
     #   Anisotropy
@@ -390,8 +348,6 @@ class PbrTree(CyclesTree):
         if self.pureMetal:
             self.replaceSlot(self.pbr, PBR.Specular, 0.5)
             self.replaceSlot(self.pbr, PBR.SubsurfWeight, 0.0)
-            if BLENDER3:
-                self.replaceSlot(self.pbr, "Subsurface Color", (1,1,1,1))
             self.replaceSlot(self.pbr, "Subsurface Radius", (0,0,0))
         if self.owner.shader == 'PBRSKIN':
             if self.pureMetal:
@@ -428,8 +384,6 @@ class PbrTree(CyclesTree):
             self.linkScalar(roughtex, self.pbr, rough, PBR.CoatRoughness)
         else:
             self.pbr.inputs[PBR.CoatWeight].default_value = 0
-            return
-        if BLENDER3:
             return
 
         color,coltex,_ = self.getColorTex(["Top Coat Color"], "COLOR", WHITE)
@@ -557,17 +511,7 @@ class PbrTree(CyclesTree):
 
             self.owner.setTransSettings(True, False, color, 0.1)
             hasThinWall = ("Thin Wall" in pbr.inputs.keys())
-            if BLENDER3:
-                self.replaceSlot(pbr, "IOR", 1.0)
-                self.replaceSlot(pbr, "Roughness", 0.0)
-                self.replaceSlot(pbr, "Specular", 0.5)
-                self.linkScalar(roughtex, pbr, roughness, "Transmission Roughness")
-                clearcoat = (ior-1)*5
-                self.removeLink(pbr, "Clearcoat")
-                self.linkScalar(strtex, pbr, clearcoat, "Clearcoat")
-                self.removeLink(pbr, "Clearcoat Roughness")
-                self.linkScalar(groughtex, pbr, grough, "Clearcoat Roughness",)
-            elif hasThinWall:
+            if hasThinWall:
                 self.replaceSlot(pbr, "Thin Wall", True)
                 self.removeLink(pbr, "IOR")
                 self.linkScalar(iortex, pbr, ior, "IOR")
@@ -617,12 +561,11 @@ class PbrTree(CyclesTree):
             self.linkScalar(iortex, pbr, ior, "IOR")
             self.removeLink(pbr, "Roughness")
             self.setRoughness(pbr, "Roughness", roughness, roughtex, square=False)
-            if not BLENDER3:
-                self.removeLink(pbr, "Specular Tint")
-                tint = self.compProd(color, (strength, strength, strength))
-                tinttex = self.mixTexs('MULTIPLY', coltex, strtex)
-                self.linkColor(tinttex, pbr, tint, "Specular Tint")
-                tint = None
+            self.removeLink(pbr, "Specular Tint")
+            tint = self.compProd(color, (strength, strength, strength))
+            tinttex = self.mixTexs('MULTIPLY', coltex, strtex)
+            self.linkColor(tinttex, pbr, tint, "Specular Tint")
+            tint = None
             transcolor,transtex,_ = self.getColorTex(["Transmitted Color"], "COLOR", BLACK)
             dist = self.getValue(["Transmitted Measurement Distance"], 0.0)
             if not (isBlack(transcolor) or isWhite(transcolor) or dist == 0.0):
@@ -632,9 +575,6 @@ class PbrTree(CyclesTree):
         self.removeLink(pbr, "Base Color")
         self.linkColor(coltex, pbr, color, "Base Color")
         self.replaceSlot(pbr, PBR.SubsurfWeight, 0)
-        if BLENDER3:
-            self.removeLink(pbr, "Subsurface Color")
-            pbr.inputs["Subsurface Color"].default_value[0:3] = WHITE
         if tint:
             self.replaceSlot(pbr, "Specular Tint", tint)
         self.addColumn()

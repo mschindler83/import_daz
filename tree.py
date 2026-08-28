@@ -15,56 +15,34 @@ YSTEP = 25
 #   Group input and output
 #-------------------------------------------------------------
 
-if BLENDER3:
-    def addGroupInput(group, type, slot):
-        return group.inputs.new(type, slot)
+def addGroupInput(group, type, slot):
+    return group.interface.new_socket(slot, socket_type=type, in_out='INPUT')
 
-    def addGroupOutput(group, type, slot):
-        return group.outputs.new(type, slot)
+def addGroupOutput(group, type, slot):
+    return group.interface.new_socket(slot, socket_type=type, in_out='OUTPUT')
 
-    def getGroupInput(group, slot):
-        return group.inputs[slot]
+def getGroupInput(group, slot):
+    for item in group.interface.items_tree:
+        if item.item_type == 'SOCKET' and item.in_out == 'INPUT' and item.name == slot:
+            return item
 
-    def getGroupInputs(group):
-        return group.inputs.keys()
+def getGroupInputs(group):
+    return [item.name for item in group.interface.items_tree
+            if item.item_type == 'SOCKET' and item.in_out == 'INPUT']
 
-    def getGroupOutputs(group):
-        return group.outputs.keys()
-else:
-    def addGroupInput(group, type, slot):
-        return group.interface.new_socket(slot, socket_type=type, in_out='INPUT')
-
-    def addGroupOutput(group, type, slot):
-        return group.interface.new_socket(slot, socket_type=type, in_out='OUTPUT')
-
-    def getGroupInput(group, slot):
-        for item in group.interface.items_tree:
-            if item.item_type == 'SOCKET' and item.in_out == 'INPUT' and item.name == slot:
-                return item
-
-    def getGroupInputs(group):
-        return [item.name for item in group.interface.items_tree
-                if item.item_type == 'SOCKET' and item.in_out == 'INPUT']
-
-    def getGroupOutputs(group):
-        return [item.name for item in group.interface.items_tree
-                if item.item_type == 'SOCKET' and item.in_out == 'OUTPUT']
+def getGroupOutputs(group):
+    return [item.name for item in group.interface.items_tree
+            if item.item_type == 'SOCKET' and item.in_out == 'OUTPUT']
 
 #-------------------------------------------------------------
 #   Mix RGB
 #-------------------------------------------------------------
 
 class MixRGB:
-    if bpy.app.version < (3,4,0):
-        Nodetype = "ShaderNodeMixRGB"
-        Color1 = 1
-        Color2 = 2
-        ColorOut = 0
-    else:
-        Nodetype = "ShaderNodeMix"
-        Color1 = 6
-        Color2 = 7
-        ColorOut = 2
+    Nodetype = "ShaderNodeMix"
+    Color1 = 6
+    Color2 = 7
+    ColorOut = 2
     LegacyColor1 = 1
     LegacyColor2 = 2
     LegacyColorOut = 0
@@ -124,8 +102,7 @@ class Tree:
 
     def addMixRgbNode(self, blendtype, col=None, parent=None, size=12):
         node = self.addNode(MixRGB.Nodetype, col, size=size, parent=parent)
-        if bpy.app.version >= (3,4,0):
-            node.data_type = 'RGBA'
+        node.data_type = 'RGBA'
         node.blend_type = blendtype
         a = node.inputs[MixRGB.Color1]
         b = node.inputs[MixRGB.Color2]
@@ -252,10 +229,7 @@ class NodeGroup:
 #   Utilities
 #-------------------------------------------------------------
 
-if BLENDER3:
-    PRINCIPLE_SIZE = 26
-else:
-    PRINCIPLE_SIZE = 14
+PRINCIPLE_SIZE = 14
 
 NodeSize = {
     "BSDF_PRINCIPLED" : PRINCIPLE_SIZE,

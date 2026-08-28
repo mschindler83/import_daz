@@ -11,10 +11,7 @@ from ..debug import DEBUG
 if DEBUG and "MeshTools" in locals():
     print("Reloading Mesh Tools")
     import bpy
-    if bpy.app.version < (5,0,0):
-        import imp
-    else:
-        import importlib as imp
+    import importlib as imp
     imp.reload(vertex_groups)
     imp.reload(modifiers)
     imp.reload(uvmaps)

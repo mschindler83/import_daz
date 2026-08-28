@@ -510,8 +510,7 @@ class DAZ_OT_LaunchEditor(MaterialSelector, DazPropsOperator, ChannelSetter, IsM
             mix = tree.nodes.new(type = MixRGB.Nodetype)
             mix.location = (x-XSIZE+50,y-12*YSTEP)
             mix.blend_type = 'MULTIPLY'
-            if bpy.app.version >= (3,4,0):
-                mix.data_type = 'RGBA'
+            mix.data_type = 'RGBA'
             mix.inputs[0].default_value = 1.0
             mix.inputs[MixRGB.Color1].default_value = item.color
             tree.links.new(fromsocket, mix.inputs[MixRGB.Color2])

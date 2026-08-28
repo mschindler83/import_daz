@@ -177,8 +177,7 @@ class DAZ_OT_ConvertToMhx(DazPropsOperator, BendTwists, Fixer, GizmoUser):
         self.layout.prop(self, "useAnkleIk")
         self.layout.prop(self, "keepG9Twist")
         self.layout.prop(self, "useG3Tarsal")
-        if not BLENDER4:
-            self.layout.prop(self, "useDisplayTransform")
+        self.layout.prop(self, "useDisplayTransform")
         self.layout.prop(self, "useRaiseError")
         if DEBUG_MHX_ERC and GS.ercMethod.startswith("ERC"):
             self.layout.prop(self, "useErcBones")
@@ -205,8 +204,7 @@ class DAZ_OT_ConvertToMhx(DazPropsOperator, BendTwists, Fixer, GizmoUser):
 
 
     def createBoneGroups(self, rig):
-        if not BLENDER3:
-            return
+        return
         if len(rig.pose.bone_groups) != len(MHX.BoneGroups):
             for bg in list(rig.pose.bone_groups):
                 rig.pose.bone_groups.remove(bg)
@@ -502,12 +500,11 @@ class DAZ_OT_ConvertToMhx(DazPropsOperator, BendTwists, Fixer, GizmoUser):
                   par.parent and
                   par.parent.name in BD.FaceRigs):
                 return L_FACE, True
-        if not BLENDER3:
-            knownlayers = [T_BONES, T_CUSTOM , T_TWEAK, T_WIDGETS, T_HIDDEN]
-            layers = [coll.name for coll in rig.data.collections
-                      if pb.name in coll.bones and coll.name not in knownlayers]
-            if layers:
-                return layers[0], True
+        knownlayers = [T_BONES, T_CUSTOM , T_TWEAK, T_WIDGETS, T_HIDDEN]
+        layers = [coll.name for coll in rig.data.collections
+                  if pb.name in coll.bones and coll.name not in knownlayers]
+        if layers:
+            return layers[0], True
         return L_CUSTOM, True
 
 
@@ -817,15 +814,7 @@ class DAZ_OT_ConvertToMhx(DazPropsOperator, BendTwists, Fixer, GizmoUser):
     #-------------------------------------------------------------
 
     def addBoneGroups(self, rig):
-        if BLENDER3:
-            for idx,data in enumerate(MHX.BoneGroups):
-                _bgname,color,layers = data
-                bgrp = rig.pose.bone_groups[idx]
-                for pb in rig.pose.bones:
-                    for layer in layers:
-                        if isInNumLayer(pb.bone, rig, layer):
-                            pb.bone_group = bgrp
-        elif GS.useBoneColors:
+        if GS.useBoneColors:
             for _bgname,color,layers in MHX.BoneGroups:
                 for layer in layers:
                     coll = rig.data.collections.get(layer)
@@ -1979,17 +1968,11 @@ def setMhxLayers(rig, layers, useIk):
     else:
         enable = [L_LARMFK, L_RARMFK, L_LLEGFK, L_RLEGFK]
         disable = [L_LARMIK, L_RARMIK, L_LLEGIK, L_RLEGIK]
-    if BLENDER3:
-        for layer in enable:
-            layers[layer] = True
-        for layer in disable:
-            layers[layer] = False
-    else:
-        for cname in enable:
-            layers[cname] = rig.data.collections.get(cname)
-        for cname in disable:
-            if cname in layers.keys():
-                del layers[cname]
+    for cname in enable:
+        layers[cname] = rig.data.collections.get(cname)
+    for cname in disable:
+        if cname in layers.keys():
+            del layers[cname]
     return layers
 
 

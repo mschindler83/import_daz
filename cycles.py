@@ -1498,10 +1498,7 @@ class CyclesTree(Tree):
             return 0.5*radius, 1.4, 0
         elif method == 'RANDOM_WALK_SKIN':
             return 0.1*radius, 1.4, 0.8
-        elif BLENDER3: # Random walk = Random walk skin
-            return 0.1*radius, 1.4, 0.8
-        else:                           # Random walk = Random walk fixed radius
-            return 0.5*radius, 1.4, 0
+        return 0.5*radius, 1.4, 0
 
     #-------------------------------------------------------------
     #   Transparency
@@ -1552,14 +1549,6 @@ class CyclesTree(Tree):
             return weight,wttex
         node,color = self.buildRefractionNode()
         self.mixWithActive(weight, wttex, texslot, node)
-        if (GS.useFakeCaustics and
-            bpy.app.version < (3,4,0) and
-            not self.inShell and
-            not self.owner.isThinWall):
-            from .cgroup import FakeCausticsGroup
-            self.addColumn()
-            node = self.addGroup(FakeCausticsGroup, "DAZ Fake Caustics", args=[color], force=True)
-            self.mixWithActive(weight, wttex, texslot, node, keep=True)
         return weight,wttex
 
 
@@ -1768,7 +1757,7 @@ class CyclesTree(Tree):
                 mat.displacement_method = 'DISPLACEMENT'
             else:
                 mat.cycles.displacement_method = 'DISPLACEMENT'
-        if bpy.app.version >= (4,2,0) and self.thickness is not None:
+        if self.thickness is not None:
             node = self.addNode("ShaderNodeValue")
             node.outputs["Value"].default_value = self.thickness
             self.links.new(node.outputs["Value"], output.inputs["Thickness"])

@@ -46,9 +46,8 @@ class DAZ_OT_MergeGeografts(DazPropsOperator, MergeGeograftOptions, UVLayerMerge
     bl_options = {'UNDO'}
 
     def draw(self, context):
-        if bpy.app.version >= (3,4,0):
-            self.layout.prop(self, "useGeoNodes")
-        if self.useGeoNodes and bpy.app.version >= (4,4,0):
+        self.layout.prop(self, "useGeoNodes")
+        if self.useGeoNodes:
             self.layout.prop(self, "useBakeGrafts")
         else:
             self.layout.prop(self, "keepOriginal")
@@ -323,9 +322,7 @@ class DAZ_OT_MergeGeografts(DazPropsOperator, MergeGeograftOptions, UVLayerMerge
 
         # Retarget shells
         self.retargetShellInfluence(hum, grafts, influs)
-        if bpy.app.version < (3,1,0):
-            self.mergeDestructively(context, hum, grafts, body_pair_a_verts)
-        elif self.useGeoNodes:
+        if self.useGeoNodes:
             self.mergeWithGeoNodes(context, hum, grafts, body_pair_a_verts)
         else:
             self.retargetShellModifiers(hum, grafts)
@@ -345,7 +342,7 @@ class DAZ_OT_MergeGeografts(DazPropsOperator, MergeGeograftOptions, UVLayerMerge
 
 
     def deleteSelectedVerts(self):
-        if self.useGeoNodes and bpy.app.version >= (3,1,0):
+        if self.useGeoNodes:
             return
         setMode('EDIT')
         bpy.ops.mesh.delete(type='VERT')
@@ -353,7 +350,7 @@ class DAZ_OT_MergeGeografts(DazPropsOperator, MergeGeograftOptions, UVLayerMerge
 
 
     def fixFaceGroups(self, gn, graft, hum):
-        if BLENDER3 or "DazVertex" not in graft.data.attributes.keys():
+        if 'DazVertex' not in graft.data.attributes.keys():
             return
 
         def fixFaceGroup(aname, graft, hum):
@@ -498,7 +495,7 @@ class DAZ_OT_MergeGeografts(DazPropsOperator, MergeGeograftOptions, UVLayerMerge
         graftgrp = MultiGraftGroup()
         groupname = "Geografts:%s" % hum.name
         graftgrp.create(groupname)
-        useBakeGrafts = (self.useBakeGrafts and bpy.app.version >= (4,4,0))
+        useBakeGrafts = self.useBakeGrafts
         graftgrp.addGrafts(grafts, hum.name, useBakeGrafts)
 
         # Create the modifier
@@ -534,7 +531,7 @@ class DAZ_OT_MergeGeografts(DazPropsOperator, MergeGeograftOptions, UVLayerMerge
     def retargetShellModifiers(self, hum, grafts):
         from .tree import findLinksFrom
         from .geonodes import getModSocket, setModSocket
-        socket1 = ("Input_1" if BLENDER3 else "Socket_1")
+        socket1 = "Socket_1"
         for ob in bpy.data.objects:
             if ob.type == 'MESH':
                 for mod in ob.modifiers:

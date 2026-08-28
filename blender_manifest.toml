@@ -8,7 +8,7 @@ maintainer = "Thomas Larsson <thomas.larsson.01@gmail.com>"
 type = "add-on"
 website = "https://github.com/Diffeomorphic/import_daz"
 tags = ["Import-Export", "Animation"]
-blender_version_min = "4.2.0"
+blender_version_min = "5.0.0"
 license = [
   "SPDX:GPL-2.0-or-later",
 ]

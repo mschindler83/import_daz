@@ -127,7 +127,7 @@ class DAZ_OT_AddHairRig(DazPropsOperator, Separator, GizmoUser, IsMesh):
         self.startGizmos(context, rig)
         activateObject(context, ob)
         origMesh = None
-        if self.keepVertexNumbers and not BLENDER3:
+        if self.keepVertexNumbers:
             bpy.ops.object.duplicate()
             for ob1 in getSelectedMeshes(context):
                 if ob1 != ob:

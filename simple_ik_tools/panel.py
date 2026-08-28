@@ -54,18 +54,13 @@ class DAZ_PT_DazSimpleLayers(DAZ_PT_RuntimeTab, bpy.types.Panel):
             (S_TWEAK, S_SPECIAL)]
         for m,n in layers:
             row = self.layout.row()
-            if BLENDER3:
-                row.prop(rig.data, "layers", index=m, toggle=True, text=SimpleLayers[m])
-                if n:
-                    row.prop(rig.data, "layers", index=n, toggle=True, text=SimpleLayers[n])
-            else:
-                cname = SimpleLayers[m]
+            cname = SimpleLayers[m]
+            coll = rig.data.collections[cname]
+            row.prop(coll, "is_visible", toggle=True, text=cname)
+            if n:
+                cname = SimpleLayers[n]
                 coll = rig.data.collections[cname]
                 row.prop(coll, "is_visible", toggle=True, text=cname)
-                if n:
-                    cname = SimpleLayers[n]
-                    coll = rig.data.collections[cname]
-                    row.prop(coll, "is_visible", toggle=True, text=cname)
 
 
 class DAZ_PT_DazSimpleFKIK(DAZ_PT_RuntimeTab, bpy.types.Panel):

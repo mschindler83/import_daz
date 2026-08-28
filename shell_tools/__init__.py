@@ -7,10 +7,7 @@ from ..debug import DEBUG
 if DEBUG and "ShellEditFeature" in locals():
     print("Reloading Shell Tools")
     import bpy
-    if bpy.app.version < (5,0,0):
-        import imp
-    else:
-        import importlib as imp
+    import importlib as imp
     imp.reload(shell)
     imp.reload(import_shell)
     imp.reload(lie)

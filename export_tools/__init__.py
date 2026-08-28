@@ -11,10 +11,7 @@ from ..debug import DEBUG
 if DEBUG and "ExportFeature" in locals():
     print("Reloading Export Tools")
     import bpy
-    if bpy.app.version < (5,0,0):
-        import imp
-    else:
-        import importlib as imp
+    import importlib as imp
     imp.reload(preset)
     imp.reload(pose_preset)
     imp.reload(morph_preset)

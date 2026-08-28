@@ -566,9 +566,6 @@ def setFloatProp(rna, prop, value, min, max, ovr, soft=None):
         min = float(min)
         max = float(max)
         setPropMinMax(rna, prop, value, min, max, ovr, soft)
-        if ovr and bpy.app.version < (3,0,0):
-            setOverridable(rna, prop)
-            setPropMinMax(rna, prop, value, min, max, ovr, soft)
     elif ovr:
         setOverridable(rna, prop)
     rna[prop] = value

@@ -212,10 +212,7 @@ def addToons(context):
 
 
 def setToonView(context):
-    if BLENDER4:
-        toonexr = 'toon.exr'
-    else:
-        toonexr = 'toon_light.exr'
+    toonexr = 'toon_light.exr'
     for area in bpy.context.screen.areas:
         if area.type == 'VIEW_3D':
             for space in area.spaces:

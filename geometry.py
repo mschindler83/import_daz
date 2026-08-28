@@ -671,9 +671,6 @@ def isEmpty(vgrp, ob):
 
 def addMultires(context, ob, hdob, strict, subdivlevel, geo):
     from .finger import getFingerPrint
-    if bpy.app.version < (2,90,0):
-        print("Cannot rebuild subdiv in Blender %d.%d.%d" % bpy.app.version)
-        return 'HIGHDEF'
     nverts = len(ob.data.vertices)
     nhdverts = len(hdob.data.vertices)
     if nverts == nhdverts:
@@ -1470,15 +1467,11 @@ class Geometry(Asset, Channels):
                         weights[e.index] = w
             level = max(1, self.SubDIALevel + self.SubDRenderLevel)
             activateObject(context, ob)
-            if not BLENDER3:
-                bpy.ops.geometry.attribute_add(name='crease_edge', domain='EDGE')
+            bpy.ops.geometry.attribute_add(name='crease_edge', domain='EDGE')
             setMode('EDIT')
             bm = from_edit_mesh(ob.data)
             bm.edges.ensure_lookup_table()
-            if BLENDER3:
-                crease = bm.edges.layers.crease.verify()
-            else:
-                crease = bm.edges.layers.float.get('crease_edge')
+            crease = bm.edges.layers.float.get('crease_edge')
             for en,w in weights.items():
                 e = bm.edges[en]
                 e[crease] = min(1.0, w/level)

@@ -179,17 +179,11 @@ def setRigifyLayers(rig, fk, layers):
     else:
         disable = [R_ARMFK_L, R_ARMFK_R, R_LEGFK_L, R_LEGFK_R]
         enable = [R_ARMIK_L, R_ARMIK_R, R_LEGIK_L, R_LEGIK_R]
-    if BLENDER3:
-        for n in enable:
-            layers[n] = True
-        for n in disable:
-            layers[n] = False
-    else:
-        for cname in enable:
-            layers[cname] = rig.data.collections.get(cname)
-        for cname in disable:
-            if cname in layers.keys():
-                del layers[cname]
+    for cname in enable:
+        layers[cname] = rig.data.collections.get(cname)
+    for cname in disable:
+        if cname in layers.keys():
+            del layers[cname]
     return layers
 
 

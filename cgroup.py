@@ -362,16 +362,10 @@ class LogColorGroup(CyclesGroup):
 
 
     def addNodes(self, args=None):
-        if BLENDER4:
-            sepname = "ShaderNodeSeparateRGB"
-            combname = "ShaderNodeCombineRGB"
-            slot = "Image"
-            red,green,blue = "R", "G", "B"
-        else:
-            sepname = "ShaderNodeSeparateColor"
-            combname = "ShaderNodeCombineColor"
-            slot = "Color"
-            red,green,blue = "Red", "Green", "Blue"
+        sepname = "ShaderNodeSeparateColor"
+        combname = "ShaderNodeCombineColor"
+        slot = "Color"
+        red,green,blue = "Red", "Green", "Blue"
 
         sep = self.addNode(sepname, 1)
         self.links.new(self.inputs.outputs["Color"], sep.inputs[slot])
@@ -380,9 +374,8 @@ class LogColorGroup(CyclesGroup):
         absBlue = self.addLog(sep.outputs[blue])
 
         comb = self.addNode(combname, 5)
-        if not BLENDER4:
-            sep.mode = 'RGB'
-            comb.mode = 'RGB'
+        sep.mode = 'RGB'
+        comb.mode = 'RGB'
         self.links.new(absRed.outputs[0], comb.inputs[red])
         self.links.new(absGreen.outputs[0], comb.inputs[green])
         self.links.new(absBlue.outputs[0], comb.inputs[blue])
@@ -649,16 +642,10 @@ class InvertNormalMapGroup(CyclesGroup):
 
 
     def addNodes(self, args=None):
-        if BLENDER4:
-            sepname = "ShaderNodeSeparateRGB"
-            combname = "ShaderNodeCombineRGB"
-            slot = "Image"
-            red,green,blue = "R", "G", "B"
-        else:
-            sepname = "ShaderNodeSeparateColor"
-            combname = "ShaderNodeCombineColor"
-            slot = "Color"
-            red,green,blue = "Red", "Green", "Blue"
+        sepname = "ShaderNodeSeparateColor"
+        combname = "ShaderNodeCombineColor"
+        slot = "Color"
+        red,green,blue = "Red", "Green", "Blue"
 
         sep = self.addNode(sepname, 1)
         self.links.new(self.inputs.outputs["Color"], sep.inputs[slot])
@@ -672,9 +659,8 @@ class InvertNormalMapGroup(CyclesGroup):
         self.links.new(sep.outputs[green], invGreen.inputs["Color"])
 
         comb = self.addNode(combname, 3)
-        if not BLENDER4:
-            sep.mode = 'RGB'
-            comb.mode = 'RGB'
+        sep.mode = 'RGB'
+        comb.mode = 'RGB'
         self.links.new(comb.outputs[slot], self.outputs.inputs["Color"])
         self.links.new(invRed.outputs[0], comb.inputs[red])
         self.links.new(invGreen.outputs[0], comb.inputs[green])

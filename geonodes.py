@@ -22,25 +22,17 @@ class GeoTree(Tree, NodeGroup):
         self.nodeTreeType = "GeometryNodeTree"
         self.nodeGroupType = "GeometryNodeGroup"
 
-    if bpy.app.version < (4,2,0):
-        def captureInput(self, node, slot, datatype, fromsocket):
-            node.data_type = datatype
-            self.links.new(fromsocket, node.inputs[slot])
+    def captureInput(self, node, slot, datatype, fromsocket):
+        for idx,item in enumerate(node.capture_items):
+            if slot == item.name:
+                self.links.new(fromsocket, node.inputs[idx])
+                return
+        socktype = ('VECTOR' if datatype == 'FLOAT_VECTOR' else datatype)
+        item = node.capture_items.new(socktype, slot)
+        self.links.new(fromsocket, node.inputs[-2])
 
-        def captureOutput(self, node, slot, tosocket):
-            self.links.new(node.outputs[slot], tosocket)
-    else:
-        def captureInput(self, node, slot, datatype, fromsocket):
-            for idx,item in enumerate(node.capture_items):
-                if slot == item.name:
-                    self.links.new(fromsocket, node.inputs[idx])
-                    return
-            socktype = ('VECTOR' if datatype == 'FLOAT_VECTOR' else datatype)
-            item = node.capture_items.new(socktype, slot)
-            self.links.new(fromsocket, node.inputs[-2])
-
-        def captureOutput(self, node, slot, tosocket):
-            self.links.new(node.outputs[slot], tosocket)
+    def captureOutput(self, node, slot, tosocket):
+        self.links.new(node.outputs[slot], tosocket)
 
 # ---------------------------------------------------------------------
 #   Geograft group
@@ -228,14 +220,10 @@ class MultiGraftGroup(GeoTree):
         self.links.new(last.outputs["Geometry"], merge.inputs["Geometry"])
         if useBake:
             bake = self.addNode("GeometryNodeBake", 7)
-            if BLENDER4:
-                self.links.new(merge.outputs["Geometry"], bake.inputs["Geometry"])
-                self.links.new(bake.outputs["Geometry"], self.outputs.inputs["Geometry"])
-            else:
-                # Create and configure a bake item to set the input type to GEOMETRY
-                bake_item = bake.bake_items.new('GEOMETRY', 'Geometry')
-                self.links.new(merge.outputs["Geometry"], bake.inputs[0])
-                self.links.new(bake.outputs[0], self.outputs.inputs["Geometry"])
+            # Create and configure a bake item to set the input type to GEOMETRY
+            bake_item = bake.bake_items.new('GEOMETRY', 'Geometry')
+            self.links.new(merge.outputs["Geometry"], bake.inputs[0])
+            self.links.new(bake.outputs[0], self.outputs.inputs["Geometry"])
         else:
             self.links.new(merge.outputs["Geometry"], self.outputs.inputs["Geometry"])
 
@@ -448,25 +436,9 @@ def addMaskFaceModifier(ob, grpname, fgname):
     if pgs and attr:
         pg = pgs.get(fgname)
         if pg:
-            if BLENDER3:
-                from .matsel import getInvisibleMaterial
-                mat = getInvisibleMaterial()
-                mnum = len(ob.data.materials)
-                if len(ob.data.materials) > 0 and ob.data.materials[-1] == mat:
-                    mnum -= 1
-                else:
-                    ob.data.materials.append(mat)
-                nfaces = len(ob.data.polygons)
-                marr = np.zeros(nfaces, dtype=int)
-                ob.data.polygons.foreach_get("material_index", marr)
-                faces = [(attr.data[f.index].value == pg.a) for f in ob.data.polygons]
-                marr[faces] = mnum
-                ob.data.polygons.foreach_set("material_index", marr)
-                return None
-            else:
-                mod = addModifierFirst(ob, "Mask FG %s" % fgname, 'NODES')
-                mod.node_group = addNodeGroup(MaskFacesGroup, "DAZ Mask Faces", [])
-                setModSocket(mod, 1, grpname)
-                setModSocket(mod, 2, pgs[fgname].a)
-                return mod
+            mod = addModifierFirst(ob, "Mask FG %s" % fgname, 'NODES')
+            mod.node_group = addNodeGroup(MaskFacesGroup, "DAZ Mask Faces", [])
+            setModSocket(mod, 1, grpname)
+            setModSocket(mod, 2, pgs[fgname].a)
+            return mod
     print("%s attribute %s not found" % (grpname, fgname))
