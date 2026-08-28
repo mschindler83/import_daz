@@ -13,7 +13,7 @@ from ..matsel import MaterialSelector, findUvlayers
 #-------------------------------------------------------------
 
 def getAllMaterials(scn, context):
-    return [(mat.name, mat.name, mat.name) for mat in bpy.data.materials]
+    return keepEnums("getAllMaterials", [(mat.name, mat.name, mat.name) for mat in bpy.data.materials])
 
 
 class DAZ_OT_ReplaceMaterials(MaterialSelector, DazPropsOperator, IsMesh):

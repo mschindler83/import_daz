@@ -76,7 +76,7 @@ class Separator:
 
 def getMaterialEnums(self, context):
     ob = context.object
-    return [(mat.name, mat.name, mat.name) for mat in ob.data.materials]
+    return keepEnums("getMaterialEnums", [(mat.name, mat.name, mat.name) for mat in ob.data.materials])
 
 
 class ColorGroup(bpy.types.PropertyGroup):

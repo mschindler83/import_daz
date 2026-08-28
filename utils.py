@@ -15,6 +15,21 @@ BLENDER5 = (bpy.app.version < (6,0,0))
 DAZ_PROPS = True
 
 #-------------------------------------------------------------
+#   Enum callbacks
+#-------------------------------------------------------------
+#   Blender keeps only pointers to the strings returned by an
+#   EnumProperty items callback, so Python must hold a reference to
+#   them. Without it the enum can show garbage or crash. Each callback
+#   caches its own list here.
+
+_enumCache = {}
+
+def keepEnums(key, enums):
+    _enumCache[key] = enums
+    return enums
+
+
+#-------------------------------------------------------------
 #   Blender 5
 #-------------------------------------------------------------
 

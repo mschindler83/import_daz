@@ -20,7 +20,7 @@ def getEmptyName(scn, context):
     for child in ob.children:
         if child.type == 'EMPTY':
             enums.append((child.name, child.name, child.name))
-    return enums
+    return keepEnums("getEmptyName", enums)
 
 
 class DAZ_OT_MakeDecal(DazOperator, ImageFile, SingleFile, MaterialSelector, IsMesh):

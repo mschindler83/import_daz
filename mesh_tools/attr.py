@@ -89,17 +89,17 @@ class DAZ_OT_CopyAttributes(DazPropsOperator, IsMesh):
 
 def getMaterialGroups(scn, context):
     ob = context.object
-    return [(gname, gname, gname) for gname in dazRna(ob.data).DazMaterialGroup.keys()]
+    return keepEnums("getMaterialGroups", [(gname, gname, gname) for gname in dazRna(ob.data).DazMaterialGroup.keys()])
 
 
 def getPolygonGroups(scn, context):
     ob = context.object
-    return [(gname, gname, gname) for gname in dazRna(ob.data).DazPolygonGroup.keys()]
+    return keepEnums("getPolygonGroups", [(gname, gname, gname) for gname in dazRna(ob.data).DazPolygonGroup.keys()])
 
 
 def getCondGraftGroups(scn, context):
     ob = context.object
-    return [(gname, gname, gname) for gname in dazRna(ob.data).DazCondGraftGroup.keys()]
+    return keepEnums("getCondGraftGroups", [(gname, gname, gname) for gname in dazRna(ob.data).DazCondGraftGroup.keys()])
 
 # ---------------------------------------------------------------------
 #   Display face group

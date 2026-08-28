@@ -138,7 +138,7 @@ def shapekeyItems1(self, context):
             if filter in sname.lower()
            ]
     enums.sort()
-    return enums
+    return keepEnums("shapekeyItems1", enums)
 
 
 def shapekeyItems2(self, context):
@@ -148,7 +148,7 @@ def shapekeyItems2(self, context):
               if filter in sname.lower()
             ]
     enums.sort()
-    return [("-", "-", "None")] + enums
+    return keepEnums("shapekeyItems2", [("-", "-", "None")] + enums)
 
 
 class DAZ_OT_MixShapekeys(DazOperator, IsShape):

@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import bpy
+from ..utils import keepEnums
 from ..tree import *
 from ..material import isWhite, isBlack, getImage
 from ..main import *
@@ -105,7 +106,7 @@ theImages = {}
 
 def getTargetMaterial(scn, context):
     ob = context.object
-    return [(mat.name, mat.name, mat.name) for mat in ob.data.materials]
+    return keepEnums("getTargetMaterial", [(mat.name, mat.name, mat.name) for mat in ob.data.materials])
 
 class DAZ_OT_ImportShellsAsImages(DazOperator, MaterialLoader, DazImageFile, IsMesh):
     bl_idname = "daz.import_shells_as_images"

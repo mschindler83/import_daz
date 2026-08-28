@@ -137,7 +137,7 @@ class DazActiveGroup(bpy.types.PropertyGroup):
 propsclasses = []
 
 def getRootEnums(scn, context):
-    return [(folder,folder,folder) for folder in GS.getDazPaths()]
+    return keepEnums("getRootEnums", [(folder,folder,folder) for folder in GS.getDazPaths()])
 
 def toggleMorphArmatures(self, context):
     GS.toggleMorphArmatures(context.scene)

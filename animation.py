@@ -455,8 +455,8 @@ def getGeograftItems(scn, context):
     for ob in rig.children:
         if dazRna(ob).DazMesh and ob.type == 'MESH':
             enums += [(key,key,key) for key in dazRna(ob.data).DazMergedGeografts.keys()]
-            return enums
-    return enums
+            return keepEnums("getGeograftItems", enums)
+    return keepEnums("getGeograftItems", enums)
 
 
 class MorphOptions(PosableMaker):

@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import bpy
+from ..utils import keepEnums
 from ..matsel import *
 from ..selector import Selector
 from ..tree import *
@@ -451,7 +452,7 @@ class ShellCyclesGroup(ShellGroup, CyclesTree):
 
 
 def getNodeGroups(scn, context):
-    return [(name,name,name) for name in bpy.data.node_groups.keys() if not name.startswith("DAZ ")]
+    return keepEnums("getNodeGroups", [(name,name,name) for name in bpy.data.node_groups.keys() if not name.startswith("DAZ ")])
 
 
 class DAZ_OT_AddCustomShell(MaterialSelector, DazPropsOperator):

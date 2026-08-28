@@ -208,10 +208,10 @@ def getActiveCategories(scn, context):
     ob = context.object
     cats = [(cat.name,cat.name,cat.name) for cat in dazRna(ob).DazMorphCats]
     cats.sort()
-    return cats
+    return keepEnums("getActiveCategories", cats)
 
 def getActiveAllCategories(scn, context):
-    return [("All", "All", "All")] + getActiveCategories(scn, context)
+    return keepEnums("getActiveAllCategories", [("All", "All", "All")] + getActiveCategories(scn, context))
 
 class CustomEnums:
     custom : EnumProperty(

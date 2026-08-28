@@ -122,8 +122,7 @@ class Collision:
 
 def getCollections(scn, context):
     colls = [(coll.name, coll.name, coll.name) for coll in bpy.data.collections]
-    return [('NEW', "New", "Make new collision collection"),
-            ('NONE', "None", "Don't use collision")] + colls
+    return keepEnums("getCollections", [('NEW', "New", "Make new collision collection"), ('NONE', "None", "Don't use collision")] + colls)
 
 
 class Cloth:
