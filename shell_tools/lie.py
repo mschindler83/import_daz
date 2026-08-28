@@ -572,12 +572,16 @@ class ShellLieGroup(NodeGroup, CyclesTree):
         if img:
             tex = self.addNode("ShaderNodeTexImage", 1)
             tex.location[1] = y
+            # theImages maps colorspace -> {image name : image}. Storing
+            # the image directly replaced that inner dict, so the cache
+            # never hit again, and assigning tex.image afterwards threw
+            # away the cached image anyway.
             img0 = theImages[self.colorspace].get(img.name)
             if img0:
-                tex.image = img0
+                img = img0
             else:
                 img.colorspace_settings.name = self.colorspace
-                theImages[self.colorspace] = img
+                theImages[self.colorspace][img.name] = img
             tex.image = img
             if tex0 and tex0.type == 'TEX_IMAGE':
                 tex.interpolation = tex0.interpolation

@@ -78,10 +78,14 @@ class ShellRemover:
             if link.to_node == shell:
                 linkFrom[link.to_socket.name] = link.from_socket
             if link.from_node == shell:
-                linkTo[link.from_socket.name] = link.to_socket
+                # an output can feed several inputs, so keep them all
+                if link.from_socket.name in linkTo:
+                    linkTo[link.from_socket.name].append(link.to_socket)
+                else:
+                    linkTo[link.from_socket.name] = [link.to_socket]
         for key in linkFrom.keys():
-            if key in linkTo.keys():
-                tree.links.new(linkFrom[key], linkTo[key])
+            for socket in linkTo.get(key, []):
+                tree.links.new(linkFrom[key], socket)
         tree.nodes.remove(shell)
 
 
