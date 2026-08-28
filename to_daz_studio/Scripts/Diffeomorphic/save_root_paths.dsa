@@ -18,8 +18,11 @@ function setupDazPaths()
     }
 
     fp = new DzFile( filepath );
-    debug( fp.baseName() );
-    fp.open( fp.WriteOnly );
+    if (!fp.open( fp.WriteOnly )) {
+        MessageBox.critical("Could not open\n" + filepath + "\nfor writing.",
+            appName, "&OK", "");
+        return;
+    }
     
     fp.writeLine("{");
     fp.writeLine("    \"application\": \"" + appName + "\",");

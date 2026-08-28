@@ -10,6 +10,8 @@ function meshStatistics()
         if (obj != null) 
         {
             var geom = obj.getCachedGeom();
+            if (geom == null)
+                continue;
             var nv = geom.getNumVertices();
             var ne = geom.getNumEdges();
             var nf = geom.getNumFacets();
@@ -31,6 +33,8 @@ function meshStatistics()
             lodctrl.setValue(0);
             obj.forceCacheUpdate(node,false);   
             var geom = obj.getCachedGeom();
+            if (geom == null)
+                continue;
             var nv = geom.getNumVertices();
             var ne = geom.getNumEdges();
             var nf = geom.getNumFacets();

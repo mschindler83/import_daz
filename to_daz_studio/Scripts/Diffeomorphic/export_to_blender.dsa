@@ -5,7 +5,6 @@ var version = "\"5.2.0.3019\"";
 var useExportHD = false;
 var useHDConvention = false;
 var useHDUVs = false;
-var cancelled = false;
 
 function createDialog()
 {
@@ -52,6 +51,11 @@ function createDialog()
         if (filepath) {
             exportToBlender(filepath);
         }
+        else {
+            MessageBox.warning("The scene has not been saved yet.\n" +
+                "Save the scene, or uncheck Default Location to choose a path.",
+                appName, "&OK", "");
+        }
     }
 }
 
@@ -74,7 +78,11 @@ function exportToBlender(filepath)
     var time1 = date1.getTime();
     var filepath0 = filepath + "0"
     fp = new DzFile( filepath0 );
-    fp.open( fp.WriteOnly );
+    if (!fp.open( fp.WriteOnly )) {
+        MessageBox.critical("Could not open\n" + filepath0 + "\nfor writing.",
+            appName, "&OK", "");
+        return;
+    }
 
     fp.writeLine("{");
     fp.writeLine("    \"application\": \"export_highdef_to_blender\",");
@@ -251,6 +259,8 @@ function doHDMesh(fp, obj, shape, clname, node, str1, str2)
 {
     //obj.forceCacheUpdate(node,false);
     var geom = obj.getCachedGeom();
+    if (geom == null)               // fall through to the base mesh,
+        return true;                // which forces a cache update first
     var geom0 = shape.getGeometry();
     var nv = geom.getNumVertices();
     var nv0 = geom0.getNumVertices();
@@ -446,8 +456,11 @@ function doFaces(fp, geom, hd)
 function getScenePath()
 {
     var fPath = Scene.getFilename(); //get current scene file path
-    var val = fPath.left( fPath.length - 4 ) + ".dbz"; // .duf => .dbz
-    return (val);
+    if (!fPath)                      // scene has never been saved
+        return "";
+    var idx = fPath.lastIndexOf(".");
+    var base = (idx > 0 ? fPath.left(idx) : fPath);
+    return base + ".dbz";
 }
 
 //==============================================================================

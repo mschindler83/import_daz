@@ -7,12 +7,14 @@ function setupMenus(text, desc, file)
 {
     var oMgr = MainWindow.getActionMgr();
  
-    for (var n=0; n<oMgr.getNumCustomActions(); n++) {
+    // iterate backwards: removeCustomAction() shifts the remaining entries
+    for (var n=oMgr.getNumCustomActions()-1; n>=0; n--) {
         if (text == oMgr.getCustomActionText(n)) {
             msg = "Menu entry for " + text + " already exists.\nReplacing..."
             MessageBox.information( msg, appName, "&OK" );
             oMgr.removeCustomAction( n ) ;
         }
+    }
     }    
 
     var oContentMgr = App.getContentMgr();
