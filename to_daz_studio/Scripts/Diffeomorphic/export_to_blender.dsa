@@ -336,15 +336,14 @@ function doProperties(fp, mat, pad)
     var buf = (pad + "   \"name\": \"" + normString(mat.name) + "\",\n");
     buf += (pad + "   \"properties\": {\n" );
 
-    var c = ","
+    var lines = [];
     for (var i = 0; i < np; i++)
     {
         var prop = mat.getProperty(i);
-        var value = prop.getValue();
-        if (i == np-1) c = "";
         if (prop.isNumeric())
-            buf += (pad + "      \"" + normString(prop.name) + "\": " + value + c + "\n");
+            lines.push(pad + "      \"" + normString(prop.name) + "\": " + prop.getValue());
     }
+    buf += (lines.join(",\n") + "\n");
     buf += (pad + "   }");
     fp.writeLine(buf);
 }
@@ -386,7 +385,7 @@ function doUVs(fp, geom, hd)
     var uvs = geom.getUVs();
     var nuv = uvs.getNumValues();
     var label = uvs.getLabel();
-    var buf = ("        \"" + hd + "uvset\": \"" + label + "\",\n");
+    var buf = ("        \"" + hd + "uvset\": \"" + normString(label) + "\",\n");
     buf += ("        \"" + hd + "uvs\": [\n" );
     var c = ",\n"
     for (var i = 0; i < nuv; i++)
