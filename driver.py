@@ -176,7 +176,9 @@ class DriverUser:
                     trg.bone_target = bname
 
 
-    def getShapekeyDrivers(self, ob, drivers={}):
+    def getShapekeyDrivers(self, ob, drivers=None):
+        if drivers is None:
+            drivers = {}
         if (ob.data.shape_keys is None or
             ob.data.shape_keys.animation_data is None):
             #print(ob, ob.data.shape_keys, ob.data.shape_keys.animation_data)
@@ -1304,7 +1306,9 @@ def forceDriverUpdate(rna):
 #   Disable and enable drivers
 #----------------------------------------------------------
 
-def muteDazFcurves(rig, mute, useLocation=True, useRotation=True, useScale=True, useShapekeys=True, muted=[]):
+def muteDazFcurves(rig, mute, useLocation=True, useRotation=True, useScale=True, useShapekeys=True, muted=None):
+    if muted is None:
+        muted = []
     def isDazFcurve(path):
         for string in ["(fin)", "(rst)", ":Loc:", ":Rot:", ":Sca:", ":Hdo:", ":Tlo:"]:
             if string in path:
