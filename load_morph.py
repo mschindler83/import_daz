@@ -953,7 +953,7 @@ class LoadMorph(DriverUser):
                         fcustruct[fcu.array_index] = fcu
             return fcustruct
 
-        if useDrv and self.rig and drvBone(pb.name) in self.rig.pose.bones.keys():
+        if useDrv and self.rig and drvBone(pb.name) in self.rig.pose.bones:
             pb = self.rig.pose.bones[drvBone(pb.name)]
         fcustruct = getBoneFcurves(pb, channel)
         for idx,factor in self.getFactors(vec):

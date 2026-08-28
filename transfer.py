@@ -565,20 +565,30 @@ class DAZ_OT_TransferShapekeys(JCMSelector, MatchOperator, DriverUser, RigidTran
 
 
     def computeShapeBox(self, src, hskey):
+        # Bulk-read both vertex arrays and do the comparison with numpy.
+        # float32 matches the precision of mathutils Vector, so the
+        # distance test gives the same answer per vertex as
+        # (hdata[n].co - v.co).length > eps did.
         eps = self.eps
         verts = src.data.vertices
         hdata = hskey.data
-        box = []
-        hverts = [v.index for v in verts if (hdata[v.index].co - v.co).length > eps]
-        for j in range(3):
-            xkey = [verts[vn].co[j] for vn in hverts]
-            if xkey:
-                minkey = min(xkey)
-                maxkey = max(xkey)
-            else:
-                minkey = maxkey = 0
-            box.append((minkey,maxkey))
-        return box
+        nverts = len(verts)
+        if nverts == 0:
+            return [(0,0), (0,0), (0,0)]
+        base = np.empty(nverts*3, dtype=np.float32)
+        verts.foreach_get("co", base)
+        base = base.reshape(nverts, 3)
+        shape = np.empty(nverts*3, dtype=np.float32)
+        hdata.foreach_get("co", shape)
+        shape = shape.reshape(nverts, 3)
+        delta = shape - base
+        dist = np.sqrt((delta*delta).sum(axis=1))
+        moved = base[dist > eps]
+        if len(moved) == 0:
+            return [(0,0), (0,0), (0,0)]
+        lo = moved.min(axis=0)
+        hi = moved.max(axis=0)
+        return [(float(lo[j]), float(hi[j])) for j in range(3)]
 
 
     def computeObjectBox(self, ob):

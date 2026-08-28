@@ -141,7 +141,7 @@ class Formula:
             output = "RIG"
         elif rig and rig.type == 'ARMATURE':
             output1 = getMappedBone(output, rig, mesh)
-            if output1 and output1 in rig.pose.bones.keys():
+            if output1 and output1 in rig.pose.bones:
                 output = output1
             elif output1 == "RIG":
                 output = "RIG"
@@ -187,7 +187,7 @@ class Formula:
                 target.mults.append(key)
             elif comp >= 0 and rig:
                 bname = getMappedBone(key, rig, mesh)
-                if bname in rig.pose.bones.keys():
+                if bname in rig.pose.bones:
                     if expr.bone is None:
                         expr.bone = ExprTarget(bname, type, comp)
                     expr.bone.mults.append((bname, path, comp))

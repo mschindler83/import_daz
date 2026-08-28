@@ -18,19 +18,19 @@ def getMappedBone(bname, rig, mesh=None):
     def getBone(bname):
         bname = unquote(bname)
         pg = dazRna(rig.data).DazBoneMap.get(bname)
-        if pg and pg.s in rig.data.bones.keys():
+        if pg and pg.s in rig.data.bones:
             return pg.s
-        elif bname in rig.pose.bones.keys():
+        elif bname in rig.pose.bones:
             return bname
         bname1 = BD.BoneMap.get(bname, "")
-        if bname1 and bname1 in rig.data.bones.keys():
+        if bname1 and bname1 in rig.data.bones:
             return bname1
         from .rig_utils import getSuffixName
         sufname = getSuffixName(bname, False)
-        if sufname in rig.pose.bones.keys():
+        if sufname in rig.pose.bones:
             return sufname
         sufname1 = getSuffixName(bname1, False)
-        if sufname1 in rig.pose.bones.keys():
+        if sufname1 in rig.pose.bones:
             return sufname1
         return ""
 
