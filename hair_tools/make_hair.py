@@ -906,18 +906,6 @@ class DAZ_OT_MakeHair(MatchOperator, CombineHair, IsMesh, HairOptions, HairBuild
             print("  %s: %2f s" % (hdr, t))
 
 
-    def makeParticleHair(self, context, hsystems, hum):
-        print("Make particle hair")
-        activateObject(context, hum)
-        for hsys in hsystems.values():
-            hsys.useEmitter = True
-            hsys.vertexGroup = None
-            hsys.build(context, hum)
-            sys.stdout.write(".")
-            sys.stdout.flush()
-        print("Done")
-
-
     def makePolylineHair(self, context, hsystems, hair, hum, duphair):
         print("Make polyline hair")
         coll = getCollection(context, hair)

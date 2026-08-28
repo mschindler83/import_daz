@@ -623,10 +623,6 @@ class DAZ_OT_GlobalSettings(DazPropsOperator):
         name = "Prune Node Tree",
         description = "Prune material node-tree.\nDisable for debugging only")
 
-    useFakeCaustics : BoolProperty(
-        name = "Fake Caustics",
-        description = "Use fake caustics")
-
     useBump : BoolProperty(
         name = "Bump",
         description = "Use bump maps")

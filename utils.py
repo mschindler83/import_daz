@@ -98,13 +98,6 @@ def setBoneNumLayer(bone, rig, layer, value=True):
 def getBoneLayers(bone, rig):
     return [coll for coll in rig.data.collections if bone.name in coll.bones]
 
-def setBoneNumLayers(bone, rig, layers):
-    for coll in rig.data.collections:
-        coll.unassign(bone)
-    for coll in rig.data.collections.get(layer, []):
-        if layers.get(layer):
-            coll.assign(bone)
-
 def copyBoneLayers(src, trg, rig):
     for coll in rig.data.collections:
         if src.name in coll.bones:

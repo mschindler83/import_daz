@@ -74,7 +74,6 @@ class GlobalSettings:
         self.usePruneNodes = True
 
         self.LPW = 7500.0
-        self.useFakeCaustics = False
         self.onRenderSettings = "UPDATE"
         self.onLightSettings = "WARN"
         self.useDazImages = True
