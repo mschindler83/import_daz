@@ -257,7 +257,7 @@ class CategorySelector(Selector):
 #   Remove category
 #------------------------------------------------------------------------
 
-class DAZ_OT_RemoveCategories(DazOperator, CategorySelector, MorphRemover, IsArmature):
+class DAZ_OT_RemoveCategories(DazOperator, CategorySelector, MorphRemover, IsMeshArmature):
     bl_idname = "daz.remove_categories"
     bl_label = "Remove Categories"
     bl_description = "Remove selected categories and associated drivers"
@@ -292,7 +292,7 @@ class DAZ_OT_RemoveCategories(DazOperator, CategorySelector, MorphRemover, IsArm
 #   Join categories
 #------------------------------------------------------------------------
 
-class DAZ_OT_JoinCategories(DazOperator, CategorySelector, CustomEnums, CategoryBasic, IsArmature):
+class DAZ_OT_JoinCategories(DazOperator, CategorySelector, CustomEnums, CategoryBasic, IsMeshArmature):
     bl_idname = "daz.join_categories"
     bl_label = "Join Categories"
     bl_description = "Join selected categories with the chosen category"
